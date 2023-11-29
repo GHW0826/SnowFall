@@ -6,8 +6,7 @@ namespace Infrastructure.Helper;
 
 public class DbContextPoolServiceBuilder<T> where T : DbContext
 {
-    private readonly Dictionary<string, Action<IServiceProvider, DbContextOptionsBuilder>>
-        _connectionDetails = new Dictionary<string, Action<IServiceProvider, DbContextOptionsBuilder>>();
+    private readonly Dictionary<string, Action<IServiceProvider, DbContextOptionsBuilder>> _connectionDetails = new ();
 
     private readonly IServiceCollection _serviceCollection;
 

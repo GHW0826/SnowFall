@@ -11,7 +11,7 @@ namespace Infrastructure.Helper;
 public class DbContextPoolService<T> where T : DbContext
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
+    private readonly Dictionary<string, Type> _typeMappings = new ();
 
     internal DbContextPoolService(IServiceCollection services,
            Dictionary<string, Action<IServiceProvider, DbContextOptionsBuilder>> connectionDetails)
