@@ -3,29 +3,51 @@ using Infrastructure.Helper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RedLockNet.SERedis.Configuration;
+using RedLockNet.SERedis;
+using StackExchange.Redis;
 using System.Configuration;
+using Infrastructure.Redis;
 
 namespace Infrastructure;
 
 public static class DependencyInjection
 {
 
-    public static IServiceCollection AddSnowFallInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddSnowFallRedis(this IServiceCollection services, IConfiguration configuration)
     {
-        // Redis
-        services.AddStackExchangeRedisCache(options =>
+        // NRedisStack
+        services.AddScoped(cfg =>
         {
-            options.Configuration = "127.0.0.1:6379, defaultDatabase=0";
-            options.InstanceName = string.Empty;// "master";
+            IConnectionMultiplexer multiplexer = 
+                ConnectionMultiplexer.Connect(configuration["RedisConnectionString"] ?? throw new Exception("Redis connection string is null"));
+            return multiplexer.GetDatabase();
         });
 
+        // Redis의 분산 잠금(Distributed Lock)
+        services.AddScoped(cfg =>
+        {
+            return RedLockFactory.Create(new List<RedLockMultiplexer>{
+                ConnectionMultiplexer.Connect(configuration["RedisConnectionString"] ?? throw new Exception("Redis connection string is null"))
+            });
+        });
+
+        // pub/sub
+        //중복 수신을 피하기 위해 Singleton
+        services.AddSingleton(cfg =>
+        {
+            IConnectionMultiplexer multiplexer =
+                ConnectionMultiplexer.Connect(configuration["RedisConnectionString"] ?? throw new Exception("Redis connection string is null"));
+            return multiplexer.GetSubscriber();
+        });
+        services.AddSingleton<RedisSubscribeService>();
+
+        services.AddScoped<RedisPublishService>();
         return services;
     }
 
-
     public static IServiceCollection AddSnowFallContextPool<T>(
         this IServiceCollection services,
-        IConfiguration configuration,
         string contextName,
         string connectionString
         ) where T : DbContext
@@ -37,11 +59,11 @@ public static class DependencyInjection
         return services;
     }
     public static IServiceCollection AddSnowFallContextPool<T>(
-    this IServiceCollection services,
-    IConfiguration configuration,
-    string contextName,
-    string connectionStringKey,
-    int ShardCnt) where T : DbContext
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string contextName,
+        string connectionStringKey,
+        int ShardCnt) where T : DbContext
     {
         var shardInfoContextPoolMS = services.BeginRegisterDbContextPoolService<T>();
         for (int i = 0; i < ShardCnt; ++i)

@@ -10,7 +10,7 @@ namespace SnowFall.Extensions;
 public static class ApplicationBuilderExtension
 {
 
-    public static IApplicationBuilder UseWaterApi(this IApplicationBuilder app, string healthcheck = "/api/healthcheck")
+    public static IApplicationBuilder UseSnowFallApi(this IApplicationBuilder app)
     {
         var environment = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
         if (!environment.IsProduction())
@@ -53,32 +53,7 @@ public static class ApplicationBuilderExtension
                 */
             }
         }
-        app.UseHealthChecks();
 
         return app;
-    }
-
-    private static void UseHealthChecks(this IApplicationBuilder app)
-    {
-        /*
-        //HealthCheckService가 등록되어 있으면 HealthCheck Middlerware를 등록한다.
-        if (app.ApplicationServices.GetService(typeof(HealthCheckService)) != null)
-        {
-            var environment = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-            var configOptions = app.ApplicationServices.GetRequiredService<ConfigOptions>();
-            string url = string.IsNullOrEmpty(configOptions.HealthCheck) ? "/api/healthcheck" : configOptions.HealthCheck;
-
-            app.UseHealthChecks(url, new HealthCheckOptions
-            {
-                ResponseWriter = (context, healthReport) =>
-                {
-                    string path = Path.Combine(environment.ContentRootPath, "health.html");
-                    var updown = File.Exists(path) ? File.ReadAllText(path) : "down";
-
-                    return context.Response.WriteAsync(updown);
-                }
-            });
-        }
-        */
     }
 }
