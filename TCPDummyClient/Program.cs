@@ -34,10 +34,11 @@ class GameSession : Session
     
     // ex) 이동 패킷 (3, 2) 좌표로 이동 (15번 패킷)
     // 15 3 2
-    public override void OnRecv(ArraySegment<byte> buffer)
+    public override int OnRecv(ArraySegment<byte> buffer)
     {
         string recvString = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
         Console.WriteLine($"[from server]: {recvString}");
+        return buffer.Count;
     }
 
     public override void OnSend(int numOfBytes)

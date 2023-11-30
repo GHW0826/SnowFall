@@ -11,8 +11,10 @@ namespace TCPServerCore;
 public abstract class Session
 {
     object _lock = new();
-    Queue<byte[]> _sendQueue = new();
+    Queue<ArraySegment<byte>> _sendQueue = new();
     // bool _pending = false;
+
+    RecvBuffer _recvBuffer = new RecvBuffer(1024);
 
     Socket _socket;
     int _disconnected = 0;
@@ -34,7 +36,9 @@ public abstract class Session
 
     // 2. Session 상속 (choice)
     public abstract void OnConnected(EndPoint endPoint);
-    public abstract void OnRecv(ArraySegment<byte> buffer);
+
+    // return: 처리량
+    public abstract int OnRecv(ArraySegment<byte> buffer);
     public abstract void OnSend(int numOfBytes);
     public abstract void OnDisConnected(EndPoint endPoint);
 
@@ -43,14 +47,12 @@ public abstract class Session
         _socket = socket;
 
         _recvArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnRecvCompleted);
-        _recvArgs.SetBuffer(new byte[1024], 0, 1024);
-
         _sendArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnSendCompleted);
 
         RegisterRecv();
     }
 
-    public void Send(byte[] sendBuff)
+    public void Send(ArraySegment<byte> sendBuff)
     {
         lock (_lock)
         {
@@ -84,8 +86,8 @@ public abstract class Session
 
         while (_sendQueue.Count > 0)
         {
-            byte[] buff = _sendQueue.Dequeue();
-            _pendingList.Add(new ArraySegment<byte>(buff, 0, buff.Length));
+            var buff = _sendQueue.Dequeue();
+            _pendingList.Add(buff);
         }
         _sendArgs.BufferList = _pendingList;
         bool pending = _socket.SendAsync(_sendArgs);
@@ -129,6 +131,10 @@ public abstract class Session
 
     void RegisterRecv()
     {
+        _recvBuffer.Clean();
+        var segment = _recvBuffer.WriteSegment;
+        _recvArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
+
         bool pending = _socket.ReceiveAsync(_recvArgs);
         if (pending == false)
         {
@@ -141,8 +147,27 @@ public abstract class Session
         {
             try
             {
-                OnRecv(new(args.Buffer, args.Offset, args.BytesTransferred));
+                // write cursor move
+                if (_recvBuffer.OnWrite(args.BytesTransferred) == false)
+                {
+                    Disconnect();
+                    return;
+                }
 
+                // 컨텐츠 쪽으로 데이터를 넘겨주고 얼마나 처리했는지 받음.
+                int processLen = OnRecv(_recvBuffer.ReadSegment);
+                if (processLen < 0 || _recvBuffer.DataSize < processLen)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                // Read 커서 이동
+                if (_recvBuffer.OnRead(processLen) == false)
+                {
+                    Disconnect();
+                    return;
+                }
 
                 RegisterRecv();
             }
