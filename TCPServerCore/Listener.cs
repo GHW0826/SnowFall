@@ -3,16 +3,17 @@ using System.Net.Sockets;
 
 namespace TCPServerCore;
 
-public class Listener2
+public class Listener
 {
     public int BackingNumber { get; set; }
 
     public Socket? ListenerSocket;
-    Action<Socket>? OnAcceptHandler;
+    public Func<Session>? _sessionFactory;
 
-    public void Init(IPEndPoint endPoint)
+    public void Init(IPEndPoint endPoint, Func<Session> sessionFactory)
     {
         ListenerSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        _sessionFactory += sessionFactory;
 
         // bind
         ListenerSocket.Bind(endPoint);
@@ -21,16 +22,11 @@ public class Listener2
         // backing : 최대 대기수
         ListenerSocket.Listen(BackingNumber);
 
-        /*
+
+        // accept
         SocketAsyncEventArgs args = new SocketAsyncEventArgs();
         args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted);
         RegisterAccept(args);
-        */
-    }
-
-    public async Task<Socket> AcceptAsync()
-    {
-        return await ListenerSocket.AcceptAsync();
     }
 
     void RegisterAccept(SocketAsyncEventArgs args)
@@ -50,9 +46,12 @@ public class Listener2
     {
         if (args.SocketError == SocketError.Success)
         {
-            // TODO
-            if (args.AcceptSocket != null && OnAcceptHandler != null)
-                OnAcceptHandler.Invoke(args.AcceptSocket);
+            if (args.AcceptSocket != null && _sessionFactory != null)
+            {
+                Session session = _sessionFactory.Invoke();
+                session.start(args.AcceptSocket);
+                session.OnConnected(args.AcceptSocket.RemoteEndPoint);
+            }
         }
         else
             Console.WriteLine(args.SocketError.ToString());
