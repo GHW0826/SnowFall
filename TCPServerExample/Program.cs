@@ -6,14 +6,36 @@ using TCPServerCore;
 
 namespace TCPServerExample;
 
-class GameSession : Session
+
+class Packet
 {
+    public ushort size;
+    public ushort packetId;
+}
+
+class LoginOkPacket : Packet 
+{
+}
+
+
+class GameSession : PacketSession
+{
+    
+
     class Knight
     {
         public int hp;
         public int attack;
         public string name;
         public List<int> skills = new();
+    }
+
+    public void OnRecvPacket(ArraySegment<byte> buffer)
+    {
+        // [size(2)][packetId(2)][ ... ]
+        ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
+        ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + 2);
+        Console.WriteLine($"RecvPacketId: {id}, Size {size}");
     }
 
     public override void OnConnected(EndPoint endPoint)
@@ -47,21 +69,20 @@ class GameSession : Session
         {
             Console.WriteLine(ex.ToString());
         }
-
     }
 
     public override void OnDisConnected(EndPoint endPoint)
     {
         Console.WriteLine($"OnDisconnected: {endPoint}");
     }
-
+    /*
     public override int OnRecv(ArraySegment<byte> buffer)
     {
         string recvString = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
         Console.WriteLine($"[from client]: {recvString}");
         return buffer.Count;
     }
-
+    */
     public override void OnSend(int numOfBytes)
     {
         Console.WriteLine($"BytesTransferred: {numOfBytes}");

@@ -4,20 +4,33 @@ using System.Net.Sockets;
 using System.Text;
 using TCPServerCore;
 
+class Packet
+{
+    public ushort size;
+    public ushort packetId;
+}
+
+
 class GameSession : Session
 {
     public override void OnConnected(EndPoint endPoint)
     {
         Console.WriteLine($"OnConnected: {endPoint}");
 
+        Packet packet = new Packet() { size = 4, packetId = 7 };
 
         try
         {
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 5; i++)
             {
-                // send
-                byte[] sendBuff = Encoding.UTF8.GetBytes($"Hello World server:{i} ");
-               Send(sendBuff);
+                var openSegment = SendBufferHelper.Open(4096);
+                byte[] buffer1 = BitConverter.GetBytes(packet.size);
+                byte[] buffer12 = BitConverter.GetBytes(packet.packetId);
+                Array.Copy(buffer1, 0, openSegment.Array, openSegment.Offset, buffer1.Length);
+                Array.Copy(buffer12, 0, openSegment.Array, openSegment.Offset + buffer1.Length, buffer12.Length);
+                var sendSegment = SendBufferHelper.Close(packet.size);
+
+                Send(sendBuff);
             }
         }
         catch (Exception ex)
