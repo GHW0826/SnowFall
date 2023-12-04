@@ -23,6 +23,13 @@ public enum PacketID
     {0}
 }}
 
+interface IPacket
+{{
+   ushort Protocol {{ get; }}
+    void Read(ArraySegment<byte> segment);
+    ArraySegment<byte> Write();
+}}
+
 {1}
 ";
     // {0} : 패킷 이름
@@ -36,10 +43,13 @@ public enum PacketID
     // {3} : 멤버 변수 Write
     public static string packetFormat =
 @"
-public class {0}
+public class {0} : IPacket
 {{
     {1}
+
+    public ushort Protocol {{ get {{ return (ushort)PacketID.{0}; }} }}
   
+
     public void Read(ArraySegment<byte> segment)
     {{
         ushort count = 0;
@@ -57,7 +67,7 @@ public class {0}
         bool success = true;
         Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
         count += sizeof(ushort);
-        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.{0});
+        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), Protocol);
         count += sizeof(ushort);
         {3}
 

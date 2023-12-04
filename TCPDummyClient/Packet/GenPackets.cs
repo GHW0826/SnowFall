@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TCPServerCore;
 
-namespace TCPDummyClient.Packet;
+namespace TCPServerExample.Packet;
 
 
 public enum PacketID
@@ -15,12 +15,21 @@ public enum PacketID
 
 }
 
+public interface IPacket
+{
+   ushort Protocol { get; }
+    void Read(ArraySegment<byte> segment);
+    ArraySegment<byte> Write();
+}
 
-public class PlayerInfoReq
+
+public class PlayerInfoReq : IPacket
 {
     public byte testByte;
     public long playerId;
     public string name;
+
+    public ushort Protocol { get { return (ushort)PacketID.PlayerInfoReq; } }
 
     public struct Skill
     {
@@ -132,7 +141,7 @@ public class PlayerInfoReq
         bool success = true;
         Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
         count += sizeof(ushort);
-        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
+        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), Protocol);
         count += sizeof(ushort);
         segment.Array[segment.Offset + count] = (byte)this.testByte;
         count += sizeof(byte);

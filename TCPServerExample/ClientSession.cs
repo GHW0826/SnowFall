@@ -1,17 +1,8 @@
 ﻿using System.Net;
+using TCPServerCore;
 using TCPServerExample.Packet;
 
-namespace TCPServerCore;
-
-public abstract class Packet
-{
-    public ushort size;
-    public ushort packetId;
-
-    public abstract ArraySegment<byte> Write();
-    public abstract void Read(ArraySegment<byte> s);
-}
-
+namespace TCPServerExample;
 
 
 public class ClientSession : PacketSession
@@ -19,35 +10,7 @@ public class ClientSession : PacketSession
 
     public override void OnRecvPacket(ArraySegment<byte> buffer)
     {
-        ushort count = 0;
-        // [size(2)][packetId(2)][ ... ]
-        ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
-        count += 2;
-        ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
-        count += 2;
-
-        switch ((PacketID)id)
-        {
-            case PacketID.PlayerInfoReq:
-                {
-                    count += 8;
-                    PlayerInfoReq p = new();
-                    p.Read(buffer);
-                    Console.WriteLine($"PlayerInfoReq: {p.playerId}: {p.name}");
-                    foreach(var skill in p.skills)
-                    {
-                        Console.WriteLine($"skill info: {skill.id}: {skill.level} : {skill.duration}");
-                        foreach (var att in skill.attributes)
-                        {
-                            Console.WriteLine($"attr : {att.attr}");
-                        }
-                    }
-                }
-                break;
-        }
-
-
-        Console.WriteLine($"RecvPacketId: {id}, Size {size}");
+        PacketManager.Instance.OnRecvPacket(this, buffer);
     }
 
     public override void OnConnected(EndPoint endPoint)

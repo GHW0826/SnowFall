@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text;
-using TCPDummyClient.Packet;
 using TCPServerCore;
+using TCPServerExample.Packet;
 
 namespace TCPDummyClient;
 

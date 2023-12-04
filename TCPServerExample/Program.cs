@@ -3,6 +3,7 @@
 using System.Net;
 using System.Text;
 using TCPServerCore;
+using TCPServerExample.Packet;
 
 namespace TCPServerExample;
 
@@ -23,6 +24,8 @@ class Program
         try
         {
             Listener listener = new();
+
+            PacketManager.Instance.Register();
 
             listener.BackingNumber = 10;
             Console.WriteLine("listening...");
