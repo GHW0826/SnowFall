@@ -8,6 +8,8 @@ public enum PacketID
 {
     C_PlayerInfoReq = 1,
 	S_Test = 2,
+	C_Chat = 3,
+	S_Chat = 4,
 	
 }
 
@@ -198,6 +200,103 @@ public class S_Test : IPacket
         count += sizeof(ushort);
         success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.testInt);
 		count += sizeof(int);
+
+        success &= BitConverter.TryWriteBytes(s, count);
+
+        if (success == false)
+            return null;
+        var sendBuff = SendBufferHelper.Close(count);
+        return sendBuff;
+    }
+}
+
+
+public class C_Chat : IPacket
+{
+    public string chat;
+
+    public ushort Protocol { get { return (ushort)PacketID.C_Chat; } }
+  
+
+    public void Read(ArraySegment<byte> segment)
+    {
+        ushort count = 0;
+        ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+        count += sizeof(ushort);
+        count += sizeof(ushort);
+        ushort chatLen = (ushort)BitConverter.ToInt16(s.Slice(count, s.Length - count));
+		count += sizeof(ushort);
+		this.name = Encoding.Unicode.GetString(s.Slice(count, chatLen));
+		count += chatLen;
+    }
+
+    public ArraySegment<byte> Write()
+    {
+        // openSegment
+        var segment = SendBufferHelper.Open(4096);
+        ushort count = 0;
+        bool success = true;
+        Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+        count += sizeof(ushort);
+        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), Protocol);
+        count += sizeof(ushort);
+        ushort chatLen = (ushort)Encoding.Unicode.GetBytes(
+		   this.chat, 0, this.chat.Length, segment.Array, segment.Offset + count + sizeof(ushort)
+		  );
+		success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), chatLen);
+		count += sizeof(ushort);
+		count += chatLen;
+
+        success &= BitConverter.TryWriteBytes(s, count);
+
+        if (success == false)
+            return null;
+        var sendBuff = SendBufferHelper.Close(count);
+        return sendBuff;
+    }
+}
+
+
+public class S_Chat : IPacket
+{
+    public long playerId;
+	public string chat;
+
+    public ushort Protocol { get { return (ushort)PacketID.S_Chat; } }
+  
+
+    public void Read(ArraySegment<byte> segment)
+    {
+        ushort count = 0;
+        ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+        count += sizeof(ushort);
+        count += sizeof(ushort);
+        this.playerId = BitConverter.ToInt64(s.Slice(count, s.Length - count));
+		count += sizeof(long);
+		ushort chatLen = (ushort)BitConverter.ToInt16(s.Slice(count, s.Length - count));
+		count += sizeof(ushort);
+		this.name = Encoding.Unicode.GetString(s.Slice(count, chatLen));
+		count += chatLen;
+    }
+
+    public ArraySegment<byte> Write()
+    {
+        // openSegment
+        var segment = SendBufferHelper.Open(4096);
+        ushort count = 0;
+        bool success = true;
+        Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+        count += sizeof(ushort);
+        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), Protocol);
+        count += sizeof(ushort);
+        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
+		count += sizeof(long);
+		ushort chatLen = (ushort)Encoding.Unicode.GetBytes(
+		   this.chat, 0, this.chat.Length, segment.Array, segment.Offset + count + sizeof(ushort)
+		  );
+		success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), chatLen);
+		count += sizeof(ushort);
+		count += chatLen;
 
         success &= BitConverter.TryWriteBytes(s, count);
 

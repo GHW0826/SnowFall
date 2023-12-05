@@ -22,7 +22,7 @@ public class SessionManager
             foreach (var s in _sessions)
             {
                 C_Chat chatPacket = new();
-                chatPacket.name = $"Hello Server !";
+                chatPacket.chat = $"Hello Server !";
                 ArraySegment<byte> segment = chatPacket.Write();
                 s.Send(segment);
             }

@@ -23,13 +23,14 @@ public class PacketHandler
         }
     }
 
-        public static void S_Chathandler(PacketSession session, IPacket packet)
-        {
-            S_Chat chatPacket = packet as S_Chat;
-            ServerSession clientSession = session as ServerSession;
+    public static void S_ChatHandler(PacketSession session, IPacket packet)
+    {
+        S_Chat chatPacket = packet as S_Chat;
+        ServerSession clientSession = session as ServerSession;
 
-            Console.WriteLine(chatPacket.chat);
-        }
+        Console.WriteLine(chatPacket.chat);
+    }
+
     public static void S_TestHandler(PacketSession session, IPacket packet)
     {
     }

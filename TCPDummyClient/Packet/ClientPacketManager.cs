@@ -1,35 +1,40 @@
 using System;
 using System.Collections.Generic;
+using TCPDummyClient.Packet;
 using TCPServerCore;
 
 public class PacketManager
 {
 
-    #region Singleton
-
-    static PacketManager _instance = new();
-    public static PacketManager Instance { get { return _instance; } }
-
-    #endregion
-
     Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv = new();
 
     Dictionary<ushort, Action<PacketSession, IPacket>> _handler = new();
 
-    PacketManager()
-    {
-        Register();
-    }
-
     public void Register()
     {
-        _onRecv.Add((ushort)PacketID.PlayerInfoReq, MakePacket<PlayerInfoReq>);
-        _handler.Add((ushort)PacketID.PlayerInfoReq, PacketHandler.PlayerInfoReqHandler);
 
         _onRecv.Add((ushort)PacketID.S_Test, MakePacket<S_Test>);
         _handler.Add((ushort)PacketID.S_Test, PacketHandler.S_TestHandler);
  
+
+        _onRecv.Add((ushort)PacketID.S_Chat, MakePacket<S_Chat>);
+        _handler.Add((ushort)PacketID.S_Chat, PacketHandler.S_ChatHandler);
+ 
+
     }
+
+    #region Singleton
+    static PacketManager _instacne;
+    public static PacketManager Instance
+    {
+        get
+        {
+            if (_instacne == null)
+                _instacne = new();
+            return _instacne;
+        }
+    }
+    #endregion
 
     public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
     {

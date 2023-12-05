@@ -4,13 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TCPServerCore;
-<<<<<<< HEAD
 using TCPServerExample.Packet;
 using TCPServerExample.Session;
 
 namespace TCPServerExample.Packet;
-=======
->>>>>>> d79bf13 (packet generator6)
 
 public class PacketHandler
 {
@@ -27,20 +24,18 @@ public class PacketHandler
             }
         }
     }
-<<<<<<< HEAD
 
-    public static void C_Chathandler(PacketSession session, IPacket packet)
+    public static void C_ChatHandler(PacketSession session, IPacket packet)
     {
         C_Chat chatPacket = packet as C_Chat;
         ClientSession clientSession = session as ClientSession;
         if (clientSession.Room == null)
             return;
 
-        clientSession.Room.Broadcast(clientSession, chatPacket.name);
+        clientSession.Room.Broadcast(clientSession, chatPacket.chat);
         Console.WriteLine($"");
-=======
+    }
     public static void S_TestHandler(PacketSession session, IPacket packet)
     {
->>>>>>> d79bf13 (packet generator6)
     }
 }
