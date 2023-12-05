@@ -4,16 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TCPServerCore;
+<<<<<<< HEAD
 using TCPServerExample.Packet;
 using TCPServerExample.Session;
 
 namespace TCPServerExample.Packet;
+=======
+>>>>>>> d79bf13 (packet generator6)
 
 public class PacketHandler
 {
-    public static void PlayerInfoReqHandler(PacketSession session, IPacket packet)
+    public static void C_PlayerInfoReqHandler(PacketSession session, IPacket packet)
     {
-        PlayerInfoReq p = packet as PlayerInfoReq;
+        C_PlayerInfoReq p = packet as C_PlayerInfoReq;
         Console.WriteLine($"PlayerInfoReq: {p.playerId}: {p.name}");
         foreach (var skill in p.skills)
         {
@@ -24,6 +27,7 @@ public class PacketHandler
             }
         }
     }
+<<<<<<< HEAD
 
     public static void C_Chathandler(PacketSession session, IPacket packet)
     {
@@ -34,5 +38,9 @@ public class PacketHandler
 
         clientSession.Room.Broadcast(clientSession, chatPacket.name);
         Console.WriteLine($"");
+=======
+    public static void S_TestHandler(PacketSession session, IPacket packet)
+    {
+>>>>>>> d79bf13 (packet generator6)
     }
 }

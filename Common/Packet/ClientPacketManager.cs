@@ -1,43 +1,39 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TCPServerCore;
-
-namespace TCPServerExample.Packet;
 
 public class PacketManager
 {
-
-    #region Singleton
-
-    static PacketManager _instance = new();
-    public static PacketManager Instance { get { return _instance; } }
-
-    #endregion
 
     Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv = new();
 
     Dictionary<ushort, Action<PacketSession, IPacket>> _handler = new();
 
-    PacketManager()
-    {
-        Register();
-    }
-
     public void Register()
     {
-        _onRecv.Add((ushort)PacketID.PlayerInfoReq, MakePacket<PlayerInfoReq>);
-        _handler.Add((ushort)PacketID.PlayerInfoReq, PacketHandler.PlayerInfoReqHandler);
 
+        _onRecv.Add((ushort)PacketID.S_Test, MakePacket<S_Test>);
+        _handler.Add((ushort)PacketID.S_Test, PacketHandler.S_TestHandler);
+ 
 
     }
+
+    #region Singleton
+    static PacketManager _instacne;
+    public static PacketManager Instance
+    {
+        get
+        {
+            if (_instacne == null)
+                _instacne = new();
+            return _instacne;
+        }
+    }
+    #endregion
 
     public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
     {
         ushort count = 0;
-        // [size(2)][packetId(2)][ ... ]
         ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
         count += 2;
         ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);

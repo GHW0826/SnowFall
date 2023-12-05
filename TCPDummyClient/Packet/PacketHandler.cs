@@ -9,9 +9,9 @@ namespace TCPDummyClient.Packet;
 
 public class PacketHandler
 {
-    public static void PlayerInfoReqHandler(PacketSession session, IPacket packet)
+    public static void C_PlayerInfoReqHandler(PacketSession session, IPacket packet)
     {
-        PlayerInfoReq p = packet as PlayerInfoReq;
+        C_PlayerInfoReq p = packet as C_PlayerInfoReq;
         Console.WriteLine($"PlayerInfoReq: {p.playerId}: {p.name}");
         foreach (var skill in p.skills)
         {
@@ -23,11 +23,14 @@ public class PacketHandler
         }
     }
 
-    public static void S_Chathandler(PacketSession session, IPacket packet)
-    {
-        S_Chat chatPacket = packet as S_Chat;
-        ServerSession clientSession = session as ServerSession;
+        public static void S_Chathandler(PacketSession session, IPacket packet)
+        {
+            S_Chat chatPacket = packet as S_Chat;
+            ServerSession clientSession = session as ServerSession;
 
-        Console.WriteLine(chatPacket.chat);
+            Console.WriteLine(chatPacket.chat);
+        }
+    public static void S_TestHandler(PacketSession session, IPacket packet)
+    {
     }
 }

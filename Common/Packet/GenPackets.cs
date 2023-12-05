@@ -6,20 +6,20 @@ using TCPServerCore;
 
 public enum PacketID
 {
-    PlayerInfoReq = 1,
-	Test = 2,
+    C_PlayerInfoReq = 1,
+	S_Test = 2,
 	
 }
 
-interface IPacket
+public interface IPacket
 {
-   ushort Protocol { get; }
+    ushort Protocol { get; }
     void Read(ArraySegment<byte> segment);
     ArraySegment<byte> Write();
 }
 
 
-public class PlayerInfoReq : IPacket
+public class C_PlayerInfoReq : IPacket
 {
     public byte testByte;
 	public long playerId;
@@ -101,7 +101,7 @@ public class PlayerInfoReq : IPacket
 	public List<Skill> skills = new();
 	
 
-    public ushort Protocol { get { return (ushort)PacketID.PlayerInfoReq; } }
+    public ushort Protocol { get { return (ushort)PacketID.C_PlayerInfoReq; } }
   
 
     public void Read(ArraySegment<byte> segment)
@@ -169,11 +169,11 @@ public class PlayerInfoReq : IPacket
 }
 
 
-public class Test : IPacket
+public class S_Test : IPacket
 {
     public int testInt;
 
-    public ushort Protocol { get { return (ushort)PacketID.Test; } }
+    public ushort Protocol { get { return (ushort)PacketID.S_Test; } }
   
 
     public void Read(ArraySegment<byte> segment)
