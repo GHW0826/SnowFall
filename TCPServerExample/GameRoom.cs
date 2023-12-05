@@ -3,15 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TCPServerCore;
 using TCPServerExample.Packet;
 using TCPServerExample.Session;
 
 namespace TCPServerExample;
 
-public class GameRoom
+public class GameRoom : IJobQueue
 {
     List<ClientSession> _sessions = new();
-    object _lock = new();
+    JobQueue _jobQueue = new();
+
+    public void Push(Action job)
+    {
+        _jobQueue.Push(job);
+    }
 
     public void Broadcast(ClientSession session, string chat)
     {
@@ -20,29 +26,21 @@ public class GameRoom
         packet.chat = chat + $" test ";
         ArraySegment<byte> data = packet.Write();
 
-        lock (_lock)
-        {
-            foreach (var s in _sessions) 
-            { 
-                s.Send(data);
-            }
+        foreach (var s in _sessions) 
+        { 
+            s.Send(data);
         }
     }
 
     public void Enter(ClientSession session)
     {
-        lock (_lock)
-        {
-            _sessions.Add(session);
-            session.Room = this;
-        }
+        _sessions.Add(session);
+        session.Room = this;
     }
 
     public void Leave(ClientSession session)
     {
-        lock (_lock)
-        {
-            _sessions.Remove(session);
-        }
+        _sessions.Remove(session);
     }
+
 }
