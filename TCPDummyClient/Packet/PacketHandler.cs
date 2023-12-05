@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TCPServerCore;
-using TCPServerExample.Packet;
-using TCPServerExample.Session;
 
-namespace TCPServerExample.Packet;
+namespace TCPDummyClient.Packet;
 
 public class PacketHandler
 {
@@ -25,14 +23,11 @@ public class PacketHandler
         }
     }
 
-    public static void C_Chathandler(PacketSession session, IPacket packet)
+    public static void S_Chathandler(PacketSession session, IPacket packet)
     {
-        C_Chat chatPacket = packet as C_Chat;
-        ClientSession clientSession = session as ClientSession;
-        if (clientSession.Room == null)
-            return;
+        S_Chat chatPacket = packet as S_Chat;
+        ServerSession clientSession = session as ServerSession;
 
-        clientSession.Room.Broadcast(clientSession, chatPacket.name);
-        Console.WriteLine($"");
+        Console.WriteLine(chatPacket.chat);
     }
 }

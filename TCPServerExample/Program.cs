@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using TCPServerCore;
 using TCPServerExample.Packet;
+using TCPServerExample.Session;
 
 namespace TCPServerExample;
 
@@ -12,6 +13,8 @@ namespace TCPServerExample;
 class Program
 {
     static Listener listener = new Listener();
+
+    public static GameRoom Room = new();
 
     static void Main(string[] args)
     {
@@ -25,12 +28,11 @@ class Program
         {
             Listener listener = new();
 
-            PacketManager.Instance.Register();
 
             listener.BackingNumber = 10;
             Console.WriteLine("listening...");
 
-            listener.Init(endPoint, () => { return new ClientSession(); });
+            listener.Init(endPoint, () => { return SessionManager.Instance.Generate(); });
             while (true)
             {
                 // no exit

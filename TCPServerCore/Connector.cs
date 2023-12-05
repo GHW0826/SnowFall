@@ -12,16 +12,19 @@ public class Connector
 {
     Func<Session> _sessionFactory;
 
-    public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory)
+    public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory, int count = 1)
     {
-        Socket socket = new(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        _sessionFactory = sessionFactory;
+        for (int i = 0; i < count;  i++)
+        {
+            Socket socket = new(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _sessionFactory = sessionFactory;
 
-        SocketAsyncEventArgs args = new();
-        args.Completed += OnConnectComplete;
-        args.RemoteEndPoint = endPoint;
-        args.UserToken = socket;
-        RegisterConnect(args);
+            SocketAsyncEventArgs args = new();
+            args.Completed += OnConnectComplete;
+            args.RemoteEndPoint = endPoint;
+            args.UserToken = socket;
+            RegisterConnect(args);
+        }
     }
 
     void RegisterConnect(SocketAsyncEventArgs args)

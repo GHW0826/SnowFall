@@ -1,11 +1,11 @@
 ﻿using System.Net;
 using System.Text;
+using TCPDummyClient.Packet;
 using TCPServerCore;
-using TCPServerExample.Packet;
 
 namespace TCPDummyClient;
 
-public class ServerSession : Session
+public class ServerSession : PacketSession
 {
 
     static unsafe void ToBytes(byte[] array, int offset, ulong value)
@@ -15,13 +15,26 @@ public class ServerSession : Session
             *(ulong*)ptr = value;
         }
     }
+    public override void OnRecvPacket(ArraySegment<byte> buffer)
+    {
+        PacketManager.Instance.OnRecvPacket(this, buffer);
+    }
 
+    /*
+    public override int OnRecv(ArraySegment<byte> buffer)
+    {
+        string recvString = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
+        Console.WriteLine($"[from server]: {recvString}");
+        return buffer.Count;
+    }
+    */
 
     public override void OnConnected(EndPoint endPoint)
     {
         Console.WriteLine($"OnConnected: {endPoint}");
 
         // Packet packet = new Packet() { size = 4, packetId = 7 };
+        /*
         PlayerInfoReq packet = new PlayerInfoReq()
         {
             playerId = 1001,
@@ -53,6 +66,7 @@ public class ServerSession : Session
         {
             Console.WriteLine(ex.ToString());
         }
+        */
     }
 
     public override void OnDisConnected(EndPoint endPoint)
@@ -62,12 +76,7 @@ public class ServerSession : Session
 
     // ex) 이동 패킷 (3, 2) 좌표로 이동 (15번 패킷)
     // 15 3 2
-    public override int OnRecv(ArraySegment<byte> buffer)
-    {
-        string recvString = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
-        Console.WriteLine($"[from server]: {recvString}");
-        return buffer.Count;
-    }
+
 
     public override void OnSend(int numOfBytes)
     {

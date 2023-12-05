@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using TCPServerCore;
 
-namespace TCPServerExample.Packet;
+namespace TCPDummyClient.Packet;
 
 public class PacketManager
 {
-
     #region Singleton
 
     static PacketManager _instance = new();

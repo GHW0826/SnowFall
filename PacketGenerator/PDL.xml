@@ -16,4 +16,12 @@
   <packet name="Test">
     <int name="testInt"/>
   </packet>
+  
+  <packet name="C_Chat">
+    <string name="chat"/>
+  </packet>
+  <packet name="S_Chat">
+    <long name="playerId"/>
+    <string name="chat"/>
+  </packet>
 </PDL>
