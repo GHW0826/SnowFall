@@ -44,9 +44,9 @@ class Program
             string fileText = string.Format(PacketFormat.fileFormat, packetEnums, genPackets);
             File.WriteAllText("GenPackets.cs", fileText);
 
-            string clientManagerText = string.Format(PacketFormat.managerFormat, clientManagerRegister);
+            string clientManagerText = string.Format("using TCPDummyClient.Packet;\n" + PacketFormat.managerFormat, clientManagerRegister);
             File.WriteAllText("ClientPacketManager.cs", clientManagerText);
-            string serverManagerText = string.Format(PacketFormat.managerFormat, serverManagerRegister);
+            string serverManagerText = string.Format("using TCPServerExample.Packet;\n" + PacketFormat.managerFormat, serverManagerRegister);
             File.WriteAllText("ServerPacketManager.cs", serverManagerText);
         }
     }
@@ -74,9 +74,9 @@ class Program
         packetEnums += string.Format(PacketFormat.packetEnumFormat, packetName, ++packetId) + Environment.NewLine + "\t";
 
         if (packetName.StartsWith("S_") || packetName.StartsWith("s_"))
-            clientManagerRegister += string.Format(PacketFormat.managerRegisterFormat, packetName) + Environment.NewLine;
+            clientManagerRegister += string.Format(PacketFormat.managerRegisterFormat, packetName);
         if (packetName.StartsWith("C_") || packetName.StartsWith("C_"))
-            serverManagerRegister += string.Format(PacketFormat.managerRegisterFormat, packetName) + Environment.NewLine;
+            serverManagerRegister += string.Format(PacketFormat.managerRegisterFormat, packetName);
     }
 
     // {1} : 멤버 변수

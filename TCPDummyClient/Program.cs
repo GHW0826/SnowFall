@@ -20,7 +20,7 @@ class Program
 
        connector.Connect(endPoint, 
            () => { return SessionManager.Instance.Generate(); },
-           10);
+           100);
 
        while (true)
         {

@@ -17,28 +17,23 @@ using TCPServerCore;
 
 public class PacketManager
 {{
+    #region Singleton
+	static PacketManager _instance = new PacketManager();
+	public static PacketManager Instance {{ get {{ return _instance; }} }}
+    #endregion
+
+	PacketManager()
+	{{
+		Register();
+	}}
 
     Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv = new();
-
     Dictionary<ushort, Action<PacketSession, IPacket>> _handler = new();
 
     public void Register()
     {{
 {0}
     }}
-
-    #region Singleton
-    static PacketManager _instacne;
-    public static PacketManager Instance
-    {{
-        get
-        {{
-            if (_instacne == null)
-                _instacne = new();
-            return _instacne;
-        }}
-    }}
-    #endregion
 
     public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
     {{
@@ -67,11 +62,8 @@ public class PacketManager
 
     // {0} : 패킷 이름
     public static string managerRegisterFormat =
-@"
-        _onRecv.Add((ushort)PacketID.{0}, MakePacket<{0}>);
-        _handler.Add((ushort)PacketID.{0}, PacketHandler.{0}Handler);
- ";
-
+@"        _onRecv.Add((ushort)PacketID.{0}, MakePacket<{0}>);
+        _handler.Add((ushort)PacketID.{0}, PacketHandler.{0}Handler);";
 
     // {0} : 패킷 이름/번호 목록
     // {1} : 패킷 목록
@@ -143,7 +135,6 @@ public class {0} : IPacket
         return sendBuff;
     }}
 }}
-
 ";
 
     // {0} : 변수 형식
@@ -198,7 +189,7 @@ count += sizeof({1});";
     public static string readStringFormat =
 @"ushort {0}Len = (ushort)BitConverter.ToInt16(s.Slice(count, s.Length - count));
 count += sizeof(ushort);
-this.name = Encoding.Unicode.GetString(s.Slice(count, {0}Len));
+this.{0} = Encoding.Unicode.GetString(s.Slice(count, {0}Len));
 count += {0}Len;";
 
     // {0} : 리스트 이름 [대문자]
