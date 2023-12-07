@@ -2,50 +2,41 @@
 using TCPServerCore;
 using TCPServerExample.Packet;
 
-namespace TCPServerExample.Session;
-
-
-public class ClientSession : PacketSession
+namespace TCPServerExample.Session
 {
-    public int SessionId { get; set; }
-    public GameRoom Room { get; set; }
-
-
-    public override void OnConnected(EndPoint endPoint)
+    public class ClientSession : PacketSession
     {
-        Console.WriteLine($"OnConnected: {endPoint}");
+        public int SessionId { get; set; }
+        public GameRoom Room { get; set; }
 
-        Program.Room.Push(() => Program.Room.Enter(this));
-        // TODO
-
-        try
+        public override void OnConnected(EndPoint endPoint)
         {
-            Thread.Sleep(100);
-            Disconnect();
+            Console.WriteLine($"OnConnected: {endPoint}");
+            Program.Room.Push(() => Program.Room.Enter(this));
         }
-        catch (Exception ex)
+
+        public override void OnRecvPacket(ArraySegment<byte> buffer)
         {
-            Console.WriteLine(ex.ToString());
+            PacketManager.Instance.OnRecvPacket(this, buffer);
         }
-    }
-    public override void OnRecvPacket(ArraySegment<byte> buffer)
-    {
-        PacketManager.Instance.OnRecvPacket(this, buffer);
+
+        public override void OnDisConnected(EndPoint endPoint)
+        {
+            SessionManager.Instance.Remove(this);
+            if (Room != null)
+            {
+                GameRoom room = Room;
+                room.Push(() => room.Leave(this));
+                Room = null;
+            }
+            Console.WriteLine($"OnDisconnected: {endPoint}");
+        }
+
+        public override void OnSend(int numOfBytes)
+        {
+           // Console.WriteLine($"BytesTransferred: {numOfBytes}");
+        }
     }
 
-    public override void OnDisConnected(EndPoint endPoint)
-    {
-        SessionManager.Instance.Remove(this);
-        if (Room != null)
-        {
-            GameRoom room = Room;
-            room.Push(() => room.Leave(this));
-            Room = null;
-        }
-        Console.WriteLine($"OnDisconnected: {endPoint}");
-    }
-    public override void OnSend(int numOfBytes)
-    {
-        Console.WriteLine($"BytesTransferred: {numOfBytes}");
-    }
 }
+

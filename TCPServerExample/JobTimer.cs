@@ -5,57 +5,59 @@ using System.Text;
 using System.Threading.Tasks;
 using TCPServerCore;
 
-namespace TCPServerExample;
-
-struct JobTimerElem : IComparable<JobTimerElem>
+namespace TCPServerExample
 {
-    public int execTick; // 실행 시간
-    public Action action;
-
-    public int CompareTo(JobTimerElem other)
+    struct JobTimerElem : IComparable<JobTimerElem>
     {
-        return other.execTick - execTick;
-    }
-}
+        public int execTick; // 실행 시간
+        public Action action;
 
-public class JobTimer
-{
-    PriorityQueue<JobTimerElem> _pq = new();
-    object _lock = new();
-
-    public static JobTimer Instance { get; } = new();
-
-    public void Push(Action action, int tickAfter = 0)
-    {
-        JobTimerElem job;
-        job.execTick = System.Environment.TickCount + tickAfter;
-        job.action = action;
-
-        lock (_lock)
+        public int CompareTo(JobTimerElem other)
         {
-            _pq.Push(job);
+            return other.execTick - execTick;
         }
     }
 
-    public void Flush()
+    public class JobTimer
     {
-        while (true)
-        {
-            int now = System.Environment.TickCount;
+        PriorityQueue<JobTimerElem> _pq = new();
+        object _lock = new();
 
+        public static JobTimer Instance { get; } = new();
+
+        public void Push(Action action, int tickAfter = 0)
+        {
             JobTimerElem job;
-            lock (_lock) 
+            job.execTick = System.Environment.TickCount + tickAfter;
+            job.action = action;
+
+            lock (_lock)
             {
-                if (_pq.Count == 0)
-                    break;
-
-                job = _pq.Peek();
-                if (job.execTick > now)
-                    break;
-
-                _pq.Pop();
+                _pq.Push(job);
             }
-            job.action.Invoke();
+        }
+
+        public void Flush()
+        {
+            while (true)
+            {
+                int now = System.Environment.TickCount;
+
+                JobTimerElem job;
+                lock (_lock)
+                {
+                    if (_pq.Count == 0)
+                        break;
+
+                    job = _pq.Peek();
+                    if (job.execTick > now)
+                        break;
+
+                    _pq.Pop();
+                }
+                job.action.Invoke();
+            }
         }
     }
+
 }

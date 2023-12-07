@@ -2,37 +2,38 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using TCPDummyClient;
 using TCPServerCore;
 
-
-class Program
+namespace TCPDummyClient
 {
-    static void Main(string[] args)
+    class Program
     {
-        // DNS
-        string host = Dns.GetHostName();
-        IPHostEntry ipHost = Dns.GetHostEntry(host);
-        IPAddress ipAddr = ipHost.AddressList[0];
-        IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
-
-        Connector connector = new Connector();
-
-       connector.Connect(endPoint, 
-           () => { return SessionManager.Instance.Generate(); },
-           100);
-
-       while (true)
+        static void Main(string[] args)
         {
-            try
+            // DNS
+            string host = Dns.GetHostName();
+            IPHostEntry ipHost = Dns.GetHostEntry(host);
+            IPAddress ipAddr = ipHost.AddressList[0];
+            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
+
+            Connector connector = new Connector();
+
+            connector.Connect(endPoint,
+                () => { return SessionManager.Instance.Generate(); },
+                100);
+
+            while (true)
             {
-                SessionManager.Instance.SendForEach();
+                try
+                {
+                    SessionManager.Instance.SendForEach();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+                Thread.Sleep(250);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-            Thread.Sleep(250);
         }
     }
 }

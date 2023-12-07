@@ -94,7 +94,7 @@ public class S_Chat : IPacket
         bool success = true;
         Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
         count += sizeof(ushort);
-        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), Protocol);
+        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.S_Chat);
         count += sizeof(ushort);
         success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
 		count += sizeof(int);

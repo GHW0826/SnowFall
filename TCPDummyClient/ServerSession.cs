@@ -3,36 +3,28 @@ using System.Text;
 using TCPDummyClient.Packet;
 using TCPServerCore;
 
-namespace TCPDummyClient;
-
-public class ServerSession : PacketSession
+namespace TCPDummyClient
 {
-    static unsafe void ToBytes(byte[] array, int offset, ulong value)
+    public class ServerSession : PacketSession
     {
-        fixed (byte* ptr = &array[offset])
+        public override void OnConnected(EndPoint endPoint)
         {
-            *(ulong*)ptr = value;
+            Console.WriteLine($"OnConnected: {endPoint}");
+        }
+        public override void OnDisConnected(EndPoint endPoint)
+        {
+            Console.WriteLine($"OnDisconnected: {endPoint}");
+        }
+
+        public override void OnRecvPacket(ArraySegment<byte> buffer)
+        {
+            PacketManager.Instance.OnRecvPacket(this, buffer);
+        }
+
+        public override void OnSend(int numOfBytes)
+        {
+            // Console.WriteLine($"BytesTransferred: {numOfBytes}");
         }
     }
 
-    public override void OnRecvPacket(ArraySegment<byte> buffer)
-    {
-        PacketManager.Instance.OnRecvPacket(this, buffer);
-    }
-
-    public override void OnConnected(EndPoint endPoint)
-    {
-        Console.WriteLine($"OnConnected: {endPoint}");
-    }
-
-    public override void OnDisConnected(EndPoint endPoint)
-    {
-        Console.WriteLine($"OnDisconnected: {endPoint}");
-    }
-
-
-    public override void OnSend(int numOfBytes)
-    {
-        // Console.WriteLine($"BytesTransferred: {numOfBytes}");
-    }
 }

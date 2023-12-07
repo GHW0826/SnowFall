@@ -4,56 +4,57 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TCPServerCore;
-
-public interface IJobQueue
+namespace TCPServerCore
 {
-    public void Push(Action job);
-}
-
-public class JobQueue : IJobQueue
-{
-    Queue<Action> _jobQueue = new();
-    object _lock = new();
-    bool _flush = false;
-
-    public void Push(Action job)
+    public interface IJobQueue
     {
-        bool flush = false;
-        lock (_lock)
-        {
-            _jobQueue.Enqueue(job);
-            if (_flush == false)
-                flush = _flush = true;
-
-        }
-
-        if (flush)
-            Flush();
+        void Push(Action job);
     }
 
-    public void Flush()
+    public class JobQueue : IJobQueue
     {
-        while (true)
-        {
-            Action action = Pop();
-            if (action == null)
-                return;
+        Queue<Action> _jobQueue = new();
+        object _lock = new();
+        bool _flush = false;
 
-            action.Invoke();
-        }
-    }
-
-    Action Pop()
-    {
-        lock (_lock)
+        public void Push(Action job)
         {
-            if (_jobQueue.Count == 0)
+            bool flush = false;
+            lock (_lock)
             {
-                _flush = false;
-                return null;
+                _jobQueue.Enqueue(job);
+                if (_flush == false)
+                    flush = _flush = true;
+
             }
-            return _jobQueue.Dequeue();
+
+            if (flush)
+                Flush();
+        }
+
+        public void Flush()
+        {
+            while (true)
+            {
+                Action action = Pop();
+                if (action == null)
+                    return;
+
+                action.Invoke();
+            }
+        }
+
+        Action Pop()
+        {
+            lock (_lock)
+            {
+                if (_jobQueue.Count == 0)
+                {
+                    _flush = false;
+                    return null;
+                }
+                return _jobQueue.Dequeue();
+            }
         }
     }
 }
