@@ -130,7 +130,7 @@ public static class HostBuilderExtension
                                     Id = "Bearer"
                                 }
                             },
-                            new string[0]
+                            Array.Empty<string>()
                         } });
                     // 구성 옵션에 Swagger 설정 액션이 포함되어 있으면 이를 호출하여 사용자 지정 Swagger 설정을 적용
                     configOptions.SwaggerAction?.Invoke(c);
