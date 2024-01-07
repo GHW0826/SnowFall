@@ -13,6 +13,7 @@ namespace TCPDummyClient
         public static SessionManager Instance { get { return _session; } }
 
         List<ServerSession> _sessions = new();
+        Random _random = new Random();
         object _lock = new();
 
         public void SendForEach()
@@ -21,10 +22,11 @@ namespace TCPDummyClient
             {
                 foreach (var s in _sessions)
                 {
-                    C_Chat chatPacket = new();
-                    chatPacket.chat = $"Hello Server !";
-                    ArraySegment<byte> segment = chatPacket.Write();
-                    s.Send(segment);
+                    C_Move movePacket = new();
+                    movePacket.posX = _random.Next(-50, 50);
+                    movePacket.posY = 0;
+                    movePacket.posZ = _random.Next(-50, 50);
+                    s.Send(movePacket.Write());
                 }
             }
         }

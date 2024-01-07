@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TCPServerCore
@@ -78,7 +79,7 @@ namespace TCPServerCore
         // return: 처리량
         public abstract int OnRecv(ArraySegment<byte> buffer);
         public abstract void OnSend(int numOfBytes);
-        public abstract void OnDisConnected(EndPoint endPoint);
+        public abstract void OnDisconnected(EndPoint endPoint);
 
         void Clear()
         {
@@ -128,7 +129,7 @@ namespace TCPServerCore
             if (Interlocked.Exchange(ref _disconnected, 1) == 1)
                 return;
 
-            OnDisConnected(_socket.RemoteEndPoint);
+            OnDisconnected(_socket.RemoteEndPoint);
             _socket.Shutdown(SocketShutdown.Both);
             _socket.Close();
             Clear();
@@ -153,9 +154,7 @@ namespace TCPServerCore
             {
                 bool pending = _socket.SendAsync(_sendArgs);
                 if (pending == false)
-                {
                     OnSendCompleted(null, _sendArgs);
-                }
             }
             catch (Exception ex)
             {
@@ -179,9 +178,7 @@ namespace TCPServerCore
                         OnSend(_sendArgs.BytesTransferred);
 
                         if (_sendQueue.Count > 0)
-                        {
                             RegisterSend();
-                        }
                     }
                     catch (Exception ex)
                     {
@@ -210,9 +207,7 @@ namespace TCPServerCore
             {
                 bool pending = _socket.ReceiveAsync(_recvArgs);
                 if (pending == false)
-                {
                     OnRecvCompleted(null, _recvArgs);
-                }
             }
             catch (Exception ex)
             {

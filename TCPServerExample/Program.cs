@@ -1,9 +1,12 @@
 ﻿
-
+using System;
+using System.Collections.Generic;
 using System.Net;
-using System.Text;
+using System.Threading;
 using TCPServerCore;
-using TCPServerExample.Packet;
+using TCPServerExample.Data;
+using TCPServerExample.DB;
+using TCPServerExample.Game;
 using TCPServerExample.Session;
 
 namespace TCPServerExample
@@ -11,16 +14,30 @@ namespace TCPServerExample
     class Program
     {
         static Listener listener = new ();
-        public static GameRoom Room = new();
+        static List<System.Timers.Timer> _timers = new();
 
-        static void FlushRoom()
+        static void TickRoom(GameRoom room, int tick = 100)
         {
-            Room.Push(() => Room.Flush());
-            JobTimer.Instance.Push(FlushRoom, 250);
+            var timer = new System.Timers.Timer();
+            timer.Interval = tick;
+            timer.Elapsed += ((s, e) => { room.Update(); });
+            timer.AutoReset = true;
+            timer.Enabled = true;
+
+            _timers.Add(timer);
         }
 
         static void Main(string[] args)
         {
+            ConfigManager.LoadConfig();
+            DataManager.LoadData();
+
+
+            var d = DataManager.StatDict;
+
+            GameRoom room = RoomManager.Instance.Add(1);
+            TickRoom(room, 50);
+
             // DNS
             string host = Dns.GetHostName();
             IPHostEntry ipHost = Dns.GetHostEntry(host);
@@ -30,27 +47,12 @@ namespace TCPServerExample
             try
             {
                 Listener listener = new();
-
                 Console.WriteLine("listening...");
+                listener.Init(endPoint, () => { return SessionManager.Instance.Generate(); }, 1);
 
-                listener.Init(endPoint, () => { return SessionManager.Instance.Generate(); });
-
-                //FlushRoom();
-                JobTimer.Instance.Push(FlushRoom);
-
-                //int roomTick = 0;
                 while (true)
                 {
-                    JobTimer.Instance.Flush();
-
-                    /*
-                    int now = System.Environment.TickCount;
-                    if (roomTick < now)
-                    {
-                        Room.Push(() => Room.Flush());
-                        roomTick = now + 250;
-                    }
-                    */
+                    Thread.Sleep(100);
                 }
             }
             catch (Exception ex)

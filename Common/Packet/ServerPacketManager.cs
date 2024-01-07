@@ -1,29 +1,43 @@
-using TCPServerExample.Packet;
 using System;
 using System.Collections.Generic;
 using TCPServerCore;
 
 public class PacketManager
 {
-    #region Singleton
-	static PacketManager _instance = new PacketManager();
-	public static PacketManager Instance { get { return _instance; } }
-    #endregion
-
-	PacketManager()
-	{
-		Register();
-	}
 
     Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv = new();
+
     Dictionary<ushort, Action<PacketSession, IPacket>> _handler = new();
 
     public void Register()
     {
+
         _onRecv.Add((ushort)PacketID.C_Chat, MakePacket<C_Chat>);
         _handler.Add((ushort)PacketID.C_Chat, PacketHandler.C_ChatHandler);
+ 
+
+        _onRecv.Add((ushort)PacketID.C_LeaveGame, MakePacket<C_LeaveGame>);
+        _handler.Add((ushort)PacketID.C_LeaveGame, PacketHandler.C_LeaveGameHandler);
+ 
+
+        _onRecv.Add((ushort)PacketID.C_Move, MakePacket<C_Move>);
+        _handler.Add((ushort)PacketID.C_Move, PacketHandler.C_MoveHandler);
+ 
 
     }
+
+    #region Singleton
+    static PacketManager _instacne;
+    public static PacketManager Instance
+    {
+        get
+        {
+            if (_instacne == null)
+                _instacne = new();
+            return _instacne;
+        }
+    }
+    #endregion
 
     public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
     {

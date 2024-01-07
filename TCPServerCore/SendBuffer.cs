@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace TCPServerCore
 {
+    /*
     public class SendBufferHelper
     {
         public static ThreadLocal<SendBuffer> CurrentBuffer = new ThreadLocal<SendBuffer>(() => { return null; });
@@ -55,5 +56,5 @@ namespace TCPServerCore
             return segment;
         }
     }
-
+    */
 }

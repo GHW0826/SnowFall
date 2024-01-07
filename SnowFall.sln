@@ -7,15 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnowFall", "SnowFall\SnowFa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{808E4F07-1769-4CC1-BC78-E972E3490F6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCPDummyClient", "TCPDummyClient\TCPDummyClient.csproj", "{1C8A89FC-03BB-46D6-9DD8-AA079630DA18}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCPServerCore", "TCPServerCore\TCPServerCore.csproj", "{D16CF0C4-AB60-41E3-AEFF-9B543986894D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCPServerExample", "TCPServerExample\TCPServerExample.csproj", "{206D08DE-F975-41ED-9892-DF65CE15E9E3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestExample", "TestExample\TestExample.csproj", "{E480E99B-4BBE-4428-BEC1-ADC18F135FE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketGenerator", "PacketGenerator\PacketGenerator.csproj", "{95A82DC0-A3BE-4A40-8C03-5AD595E5553E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PacketGenerator", "PacketGenerator\PacketGenerator.csproj", "{95A82DC0-A3BE-4A40-8C03-5AD595E5553E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{8E0481FB-B2A2-44F3-9AB7-20C3DB1BCE8E}"
 EndProject
@@ -33,10 +31,6 @@ Global
 		{808E4F07-1769-4CC1-BC78-E972E3490F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{808E4F07-1769-4CC1-BC78-E972E3490F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{808E4F07-1769-4CC1-BC78-E972E3490F6F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C8A89FC-03BB-46D6-9DD8-AA079630DA18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C8A89FC-03BB-46D6-9DD8-AA079630DA18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C8A89FC-03BB-46D6-9DD8-AA079630DA18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C8A89FC-03BB-46D6-9DD8-AA079630DA18}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D16CF0C4-AB60-41E3-AEFF-9B543986894D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D16CF0C4-AB60-41E3-AEFF-9B543986894D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D16CF0C4-AB60-41E3-AEFF-9B543986894D}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -9,7 +9,7 @@ namespace TCPServerExample.Session
 {
     // TODO 
     // Core부분으로 옮기자
-    internal class SessionManager
+    class SessionManager
     {
         static SessionManager _session = new();
         public static SessionManager Instance { get { return _session; } }
@@ -23,6 +23,7 @@ namespace TCPServerExample.Session
             lock (_lock)
             {
                 int sessionId = ++_sessionId;
+
                 ClientSession session = new();
                 session.SessionId = sessionId;
                 _sessions.Add(sessionId, session);
