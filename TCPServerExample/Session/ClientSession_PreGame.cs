@@ -9,6 +9,8 @@ using TCPServerCore;
 using TCPServerExample.Data;
 using TCPServerExample.DB;
 using TCPServerExample.Game;
+using TCPServerExample.Migrations;
+using TCPServerExample.Utils;
 
 namespace TCPServerExample.Session
 {
@@ -48,6 +50,7 @@ namespace TCPServerExample.Session
                     {
                         LobbyPlayerInfo lobbyPlayer = new()
                         {
+                            PlayerDbId = playerDb.AccountDbId,
                             Name = playerDb.PlayerName,
                             StatInfo = new ()
                             {
@@ -64,7 +67,7 @@ namespace TCPServerExample.Session
 
                         // 패킷에 넣는다.
                         loginOk.Players.Add(lobbyPlayer);
-                    }
+                    } 
 
                     Send(loginOk);
 
@@ -78,7 +81,9 @@ namespace TCPServerExample.Session
                         AccountName = loginPacket.UniqueId
                     };
                     db.Accounts.Add(newAccount);
-                    db.SaveChanges(); // TODO exception
+                    bool success = db.SaveChangesEx(); // TODO exception
+                    if (success == false)
+                        return;
 
                     AccountDbId = newAccount.AccountDbId;
 
@@ -127,11 +132,14 @@ namespace TCPServerExample.Session
                         AccountDbId = AccountDbId
                     };
                     db.Players.Add(newPlayerDb);
-                    db.SaveChanges(); // TODO Exception handling
+                    bool success = db.SaveChangesEx(); // TODO Exception handling
+                    if (success == false)
+                        return;
 
                     // 메모리에 추가
                     LobbyPlayerInfo lobbyPlayer = new()
                     {
+                        PlayerDbId = newPlayerDb.PlayerDbId,
                         Name = createPacket.Name,
                         StatInfo = new()
                         {
@@ -169,6 +177,7 @@ namespace TCPServerExample.Session
             // 로비에서 캐릭터 선택시 생성
             MyPlayer = ObjectManager.Instance.Add<Player>();
             {
+                MyPlayer.PlayerDbId = playerInfo.PlayerDbId;
                 MyPlayer.Info.Name = playerInfo.Name;
                 MyPlayer.Info.PosInfo.State = CreatureState.Idle;
                 MyPlayer.Info.PosInfo.MoveDir = MoveDir.Down;
@@ -176,6 +185,31 @@ namespace TCPServerExample.Session
                 MyPlayer.Info.PosInfo.PoxY = 0;
                 MyPlayer.Stat.MergeFrom(playerInfo.StatInfo);
                 MyPlayer.Session = this;
+
+                S_ItemList itemListPacket = new();
+                // 아이템 목록 가져오기
+                using (AppDbContext db = new AppDbContext())
+                {
+                    List<ItemDb> list = db.Items.Where(i => i.OwnerDbId == playerInfo.PlayerDbId).ToList();
+
+                    foreach (ItemDb itemDb in list)
+                    {
+                        // TODO 인벤토리
+                        Item item = Item.MakeItem(itemDb);
+                        if (item != null)
+                        {
+                            MyPlayer._inven.Add(item);
+
+                            ItemInfo info = new();
+                            info.MergeFrom(item.info);
+                            itemListPacket.Items.Add(info);
+                        }
+                    }
+
+                    // TODO 클라에게 아이템 목록 전달
+                }
+
+                Send(itemListPacket);
             }
 
             // 입장 요청 들어오면 실행

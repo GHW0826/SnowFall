@@ -22,8 +22,4 @@
     <ProjectReference Include="..\TCPServerCore\TCPServerCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DB\" />
-  </ItemGroup>
-
 </Project>
