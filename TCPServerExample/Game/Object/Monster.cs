@@ -1,26 +1,29 @@
 ﻿using Google.Protobuf.Protocol;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TCPServerExample.Data;
+using TCPServerExample.DB;
 using TCPServerExample.Game.Room;
 
 namespace TCPServerExample.Game
 {
     public class Monster : GameObject
     {
+        public int TemplateId { get; private set; }
         public Monster()
         {
             ObjectType = GameObjectType.Monster;
 
-            // temp
-            Stat.Level = 1;
-            Stat.Hp = 100;
-            Stat.MaxHp = 100;
-            Stat.Speed = 5.0f;
+        }
 
+        public void Init(int templateId)
+        {
+            TemplateId = templateId;
+
+            MonsterData monsterData = null;
+            DataManager.MonsterDict.TryGetValue(templateId, out monsterData);
+            Stat.MergeFrom(monsterData.stat);
+            Stat.Hp = monsterData.stat.MaxHp;
             State = CreatureState.Idle;
         }
 
@@ -186,6 +189,42 @@ namespace TCPServerExample.Game
 
         }
 
+        public override void OnDead(GameObject attacker)
+        {
+            base.OnDead(attacker);
 
+            if (Room == null)
+                return;
+
+            GameObject owner = attacker.GetOwner();
+            if (attacker.ObjectType == GameObjectType.Player)
+            {
+                RewardData rewardData = GetRandomReward();
+                if (rewardData != null)
+                {
+                    Player player = (Player)owner;
+                    DbTransaction.RewardPlayer(player, rewardData, Room);
+                    //player._inven.Add();
+                }
+            }
+        }
+
+        RewardData GetRandomReward()
+        {
+            MonsterData monsterData = null;
+            DataManager.MonsterDict.TryGetValue(TemplateId, out monsterData);
+
+
+            // rand = 0 ~ 100
+            int sum = 0;
+            int rand = new Random().Next(0, 101);
+            foreach (RewardData rewardData in monsterData.rewards)
+            {
+                sum += rewardData.probability;
+                if (rand <= sum)
+                    return rewardData;
+            }
+            return null;
+        }
     }
 }

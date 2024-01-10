@@ -1,5 +1,7 @@
 ﻿
+using Google.Protobuf.Protocol;
 using System;
+using TCPServerExample.Data;
 using TCPServerExample.Game;
 using TCPServerExample.Migrations;
 using TCPServerExample.Utils;
@@ -74,6 +76,53 @@ namespace TCPServerExample.DB
         public static void SavePlayerStatus_Step3(int hp)
         {
             Console.WriteLine($"Hp Saved:{hp}");
+        }
+
+        public static void RewardPlayer(Player player, RewardData rewardData, GameRoom room)
+        {
+            if (player == null || rewardData == null || room == null)
+                return;
+
+            // TODO : 살짝 문제가 있긴 하다.
+            int? slot = player._inven.GetEmptySlot();
+            if (slot == null)
+                return;
+
+            ItemDb itemDb = new()
+            {
+                TemplateId = rewardData.itemId,
+                Count = rewardData.count,
+                Slot = slot.Value,
+                OwnerDbId = player.PlayerDbId
+            };
+
+            // You (Db)
+            Instance.Push(() =>
+            {
+                using (AppDbContext db = new())
+                {
+                    db.Items.Add(itemDb);
+                    bool success = db.SaveChangesEx();
+                    if (success)
+                    {
+                        room.Push(() =>
+                        {
+                            Item newItem = Item.MakeItem(itemDb);
+                            player._inven.Add(newItem);
+
+                            // TODO Client Noti
+                            {
+                                S_AddItem itemPacket = new S_AddItem();
+                                ItemInfo itemInfo = new ItemInfo();
+                                itemInfo.MergeFrom(newItem.info);
+                                itemPacket.Items.Add(itemInfo);
+
+                                player.Session.Send(itemPacket);
+                            }
+                        });
+                    }
+                }
+            });
         }
     }
 }

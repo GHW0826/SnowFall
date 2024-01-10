@@ -31,6 +31,11 @@ namespace TCPServerExample.Game
             get { return info.Count; }
             set { info.Count = value; }
         }
+        public int Slot
+        {
+            get { return info.Slot; }
+            set { info.Slot = value; }
+        }
 
         public ItemType ItemType { get; private set; }
         public bool Stackable { get; protected set; }
@@ -65,6 +70,7 @@ namespace TCPServerExample.Game
             {
                 item.ItemDbId = itemdb.ItemDbId;
                 item.Count = itemdb.Count;
+                item.Slot = itemdb.Slot;
             }
 
             return item;

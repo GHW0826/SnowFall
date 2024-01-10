@@ -140,5 +140,10 @@ namespace TCPServerExample.Game
 
             room.EnterGame(this);
         }
+
+        public virtual GameObject GetOwner()
+        {
+            return this;
+        }
     }
 }

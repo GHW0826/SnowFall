@@ -54,5 +54,10 @@ namespace TCPServerExample.Game
                 Console.WriteLine($"destroy: {id}");
             }
         }
+
+        public override GameObject GetOwner()
+        {
+            return Owner;
+        }
     }
 }

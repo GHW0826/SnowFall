@@ -125,4 +125,41 @@ namespace TCPServerExample.Data
         }
     }
     #endregion
+
+    #region Monster
+    [Serializable]
+    public class RewardData
+    {
+        public int probability; // 100/
+        public int itemId;
+        public int count;
+    }
+
+    [Serializable]
+    public class MonsterData
+    {
+        public int id;
+        public string name;
+        public StatInfo stat;
+        public List<RewardData> rewards;
+    }
+
+    [Serializable]
+    public class MonsterLoader : ILoader<int, MonsterData>
+    {
+        public List<MonsterData> stats = new List<MonsterData>();
+
+        public Dictionary<int, MonsterData> MakeDict()
+        {
+            Dictionary<int, StatInfo> dict = new Dictionary<int, StatInfo>();
+            foreach (StatInfo stat in stats)
+            {
+                stat.Hp = stat.MaxHp;
+                dict.Add(stat.Level, stat);
+            }
+            return dict;
+        }
+    }
+
+    #endregion
 }
