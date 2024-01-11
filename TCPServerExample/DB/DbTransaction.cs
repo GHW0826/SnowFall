@@ -8,7 +8,7 @@ using TCPServerExample.Utils;
 
 namespace TCPServerExample.DB
 {
-    public class DbTransaction : JobSerializer
+    public partial class DbTransaction : JobSerializer
     {
         public static DbTransaction Instance { get; set; } = new();
 
@@ -84,6 +84,11 @@ namespace TCPServerExample.DB
                 return;
 
             // TODO : 살짝 문제가 있긴 하다.
+            // DB 선 적용, 메모리 후적용 일땐 타이밍 이슈 발생할 수 있음
+            // 동시에 몬스터를 잡으면 같은 Slot을 볼 수 있음
+            // 1) DB에다가 저장 요청
+            // 2) DB 저장 OK 
+            // 3) 메모리에 적용
             int? slot = player._inven.GetEmptySlot();
             if (slot == null)
                 return;

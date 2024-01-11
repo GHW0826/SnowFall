@@ -8,7 +8,7 @@ using TCPServerExample.Game.Room;
 
 namespace TCPServerExample.Game
 {
-    public class GameRoom : JobSerializer
+    public partial class GameRoom : JobSerializer
     {
         public int RoomId { get; set; }
 
@@ -24,20 +24,14 @@ namespace TCPServerExample.Game
 
             // temp
             Monster monster = ObjectManager.Instance.Add<Monster>();
-            monster.Init();
+            monster.Init(monster.TemplateId);
             monster.CellPos = new Vector2Int(5, 5);
             EnterGame(monster);
         }
 
-
         // 누군가 주기적으로 호출해줘야 한다.
         public void Update()
         {
-            foreach (Projectile projectile in _projectile.Values)
-            {
-                projectile.Update();
-            }
-
             foreach (Monster monster in _monsters.Values)
             {
                 monster.Update();
@@ -58,6 +52,8 @@ namespace TCPServerExample.Game
                 Player player = newObject as Player;
                 _players.Add(newObject.id, player);
                 player.Room = this;
+
+                player.RefreshAdditionalStat();
 
                 Map.ApplyMove(player, new Vector2Int(player.CellPos.x, player.CellPos.y));
 
@@ -94,6 +90,8 @@ namespace TCPServerExample.Game
                 Projectile projectile = newObject as Projectile;
                 _projectile.Add(newObject.id, projectile);
                 projectile.Room = this;
+
+                projectile.Update();
             }
 
             // 타인한테 정보 전송
@@ -156,88 +154,6 @@ namespace TCPServerExample.Game
                 }
             }
         }
-        public void HandleMove(Player player, C_Move movePacket)
-        {
-            if (player == null)
-                return;
-
-            PositionInfo movePosInfo = movePacket.PosInfo;
-            ObjectInfo info = player.Info;
-
-            // 다른 좌료포 이동할 경우, 갈 수 있는지 체크
-            if (movePosInfo.PoxX != info.PosInfo.PoxX || movePosInfo.PoxY != info.PosInfo.PoxY)
-            {
-                if (Map.CanGo(new Vector2Int(movePosInfo.PoxX, movePosInfo.PoxY)) == false)
-                    return;
-            }
-            //Console.WriteLine($"C_Mpve pos: {}, {}");
-            info.PosInfo.State = movePosInfo.State;
-            info.PosInfo.MoveDir = movePosInfo.MoveDir;
-            Map.ApplyMove(player, new Vector2Int(movePosInfo.PoxX, movePosInfo.PoxY));
-
-            // 다른 플레이어한테도 알려준다.
-            S_Move resMovePacket = new();
-            resMovePacket.ObjectId = player.Info.ObjectId;
-            resMovePacket.PosInfo = movePacket.PosInfo;
-
-            BroadCast(resMovePacket);
-        }
-        public void HandleSkill(Player player, C_Skill skillPacket)
-        {
-            if (player == null)
-                return;
-
-            ObjectInfo info = player.Info;
-            if (info.PosInfo.State != CreatureState.Idle)
-                return;
-
-            // TODO : 스킬 사용 가능 여부 체크
-            info.PosInfo.State = CreatureState.Skill;
-            S_Skill skill = new() { Info = new SkillInfo() };
-            skill.ObjectId = info.ObjectId;
-            skill.Info.SkillId = skillPacket.Info.SkillId;
-            BroadCast(skill);
-
-            Data.Skill skillData = null;
-            if (DataManager.SkillDict.TryGetValue(skillPacket.Info.SkillId, out skillData) == false)
-                return;
-
-            switch (skillData.skillType)
-            {
-                case SkillType.SkillAuto:
-                    {
-                        // 데미지 판정 (근접)
-                        Vector2Int skillPos = player.GetFrontCellPos(info.PosInfo.MoveDir);
-                        GameObject target = Map.Find(skillPos);
-                        if (target != null)
-                        {
-                            Console.WriteLine("hit Game Object !");
-                        }
-                    }
-                    break;
-                case SkillType.SkillProjectile:
-                    {
-                        // TODO: Arrow
-                        Arrow arrow = ObjectManager.Instance.Add<Arrow>();
-                        if (arrow == null)
-                            return;
-
-                        //Console.WriteLine($"Gen Pos x: {player.PosInfo.PoxX}, y:{player.PosInfo.PoxY}");
-                        arrow.Owner = player;
-                        arrow.Data = skillData;
-                        arrow.PosInfo.State = CreatureState.Moving;
-                        arrow.PosInfo.MoveDir = player.PosInfo.MoveDir;
-                        arrow.PosInfo.PoxX = player.PosInfo.PoxX;
-                        arrow.PosInfo.PoxY = player.PosInfo.PoxY;
-                        arrow.Speed = skillData.projectile.speed;
-                        Push(EnterGame, arrow);
-                    }
-                    break;
-            }
-
-            // 통과
-        }
-
         // TODO
         public Player FindPlyer(Func<GameObject, bool> condition)
         {
@@ -248,6 +164,7 @@ namespace TCPServerExample.Game
             }
             return null;
         }
+
         public void BroadCast(IMessage packet)
         {
             foreach (Player p in _players.Values)
@@ -255,5 +172,7 @@ namespace TCPServerExample.Game
                 p.Session.Send(packet);
             }
         }
+
+
     }
 }

@@ -151,11 +151,10 @@ namespace TCPServerExample.Data
 
         public Dictionary<int, MonsterData> MakeDict()
         {
-            Dictionary<int, StatInfo> dict = new Dictionary<int, StatInfo>();
-            foreach (StatInfo stat in stats)
+            Dictionary<int, MonsterData> dict = new Dictionary<int, MonsterData>();
+            foreach (MonsterData stat in stats)
             {
-                stat.Hp = stat.MaxHp;
-                dict.Add(stat.Level, stat);
+                dict.Add(stat.id, stat);
             }
             return dict;
         }

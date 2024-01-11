@@ -38,6 +38,7 @@ namespace TCPServerExample.DB
         public int TemplateId { get; set; }
         public int Count { get; set; }
         public int Slot { get; set; }
+        public bool Equipped { get; set; } = false;
 
         [ForeignKey("Owner")]
         public int? OwnerDbId { get; set; }
