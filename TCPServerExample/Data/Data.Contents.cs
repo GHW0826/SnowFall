@@ -102,7 +102,6 @@ namespace TCPServerExample.Data
         public List<ArmorData> armors = new List<ArmorData>();
         public List<ConsumableData> consumables = new List<ConsumableData>();
 
-
         public Dictionary<int, ItemData> MakeDict()
         {
             Dictionary<int, ItemData> dict = new Dictionary<int, ItemData>();

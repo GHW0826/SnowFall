@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TCPServerExample.Game
+
 {
     public class RoomManager
     {
-        public static RoomManager Instance { get; } = new();
+        public static RoomManager Instance { get; } = new RoomManager();
 
-        object _lock = new();
-        Dictionary<int, GameRoom> _rooms = new();
+        object _lock = new object();
+        Dictionary<int, GameRoom> _rooms = new Dictionary<int, GameRoom>();
         int _roomId = 1;
 
         public GameRoom Add(int mapId)
         {
-            GameRoom gameRoom = new();
-            gameRoom.Init(mapId);
+            GameRoom gameRoom = new GameRoom();
             gameRoom.Push(gameRoom.Init, mapId);
 
             lock (_lock)
@@ -26,6 +24,7 @@ namespace TCPServerExample.Game
                 _rooms.Add(_roomId, gameRoom);
                 _roomId++;
             }
+
             return gameRoom;
         }
 
@@ -44,6 +43,7 @@ namespace TCPServerExample.Game
                 GameRoom room = null;
                 if (_rooms.TryGetValue(roomId, out room))
                     return room;
+
                 return null;
             }
         }

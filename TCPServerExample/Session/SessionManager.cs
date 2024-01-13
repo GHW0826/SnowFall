@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace TCPServerExample.Session
+namespace TCPServerExample
 {
-    // TODO 
-    // Core부분으로 옮기자
     class SessionManager
     {
-        static SessionManager _session = new();
+        static SessionManager _session = new SessionManager();
         public static SessionManager Instance { get { return _session; } }
 
         int _sessionId = 0;
-        Dictionary<int, ClientSession> _sessions = new();
-        object _lock = new();
+        Dictionary<int, ClientSession> _sessions = new Dictionary<int, ClientSession>();
+        object _lock = new object();
 
         public ClientSession Generate()
         {
@@ -24,7 +19,7 @@ namespace TCPServerExample.Session
             {
                 int sessionId = ++_sessionId;
 
-                ClientSession session = new();
+                ClientSession session = new ClientSession();
                 session.SessionId = sessionId;
                 _sessions.Add(sessionId, session);
 
@@ -52,5 +47,4 @@ namespace TCPServerExample.Session
             }
         }
     }
-
 }

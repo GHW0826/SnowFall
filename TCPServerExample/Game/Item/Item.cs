@@ -1,82 +1,81 @@
 ﻿using Google.Protobuf.Protocol;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TCPServerExample.Data;
 using TCPServerExample.DB;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace TCPServerExample.Game
+
 {
     public class Item
     {
-        public ItemInfo info { get; } = new();
+        public ItemInfo Info { get; } = new ItemInfo();
 
         public int ItemDbId
         {
-            get { return info.ItemDbId; }
-            set { info.ItemDbId = value;}
+            get { return Info.ItemDbId; }
+            set { Info.ItemDbId = value; }
         }
 
         public int TemplateId
         {
-            get { return info.TemplateId; }
-            set { info.TemplateId = value; }
+            get { return Info.TemplateId; }
+            set { Info.TemplateId = value; }
         }
 
         public int Count
         {
-            get { return info.Count; }
-            set { info.Count = value; }
+            get { return Info.Count; }
+            set { Info.Count = value; }
         }
+
         public int Slot
         {
-            get { return info.Slot; }
-            set { info.Slot = value; }
+            get { return Info.Slot; }
+            set { Info.Slot = value; }
         }
+
         public bool Equipped
         {
-            get { return info.Equipped; }
-            set { info.Equipped = value; }
+            get { return Info.Equipped; }
+            set { Info.Equipped = value; }
         }
 
         public ItemType ItemType { get; private set; }
         public bool Stackable { get; protected set; }
 
-
         public Item(ItemType itemType)
         {
-            this.ItemType = itemType;
+            ItemType = itemType;
         }
 
-        public static Item MakeItem(ItemDb itemdb)
+        public static Item MakeItem(ItemDb itemDb)
         {
             Item item = null;
 
             ItemData itemData = null;
-            DataManager.ItemDict.TryGetValue(itemdb.TemplateId, out itemData);
-            if (itemData != null)
+            DataManager.ItemDict.TryGetValue(itemDb.TemplateId, out itemData);
+
+            if (itemData == null)
                 return null;
+
             switch (itemData.itemType)
             {
                 case ItemType.Weapon:
-                    item = new Weapon(itemdb.TemplateId);
+                    item = new Weapon(itemDb.TemplateId);
                     break;
                 case ItemType.Armor:
-                    item = new Armor(itemdb.TemplateId);
+                    item = new Armor(itemDb.TemplateId);
                     break;
                 case ItemType.Consumable:
-                    item = new Consumable(itemdb.TemplateId);
+                    item = new Consumable(itemDb.TemplateId);
                     break;
             }
+
             if (item != null)
             {
-                item.ItemDbId = itemdb.ItemDbId;
-                item.Count = itemdb.Count;
-                item.Slot = itemdb.Slot;
-                item.Equipped = itemdb.Equipped;
+                item.ItemDbId = itemDb.ItemDbId;
+                item.Count = itemDb.Count;
+                item.Slot = itemDb.Slot;
+                item.Equipped = itemDb.Equipped;
             }
 
             return item;
@@ -87,8 +86,8 @@ namespace TCPServerExample.Game
     {
         public WeaponType WeaponType { get; private set; }
         public int Damage { get; private set; }
-        public Weapon(int templateId)
-            : base(ItemType.Weapon)
+
+        public Weapon(int templateId) : base(ItemType.Weapon)
         {
             Init(templateId);
         }
@@ -102,7 +101,7 @@ namespace TCPServerExample.Game
 
             WeaponData data = (WeaponData)itemData;
             {
-                TemplateId = templateId;
+                TemplateId = data.id;
                 Count = 1;
                 WeaponType = data.weaponType;
                 Damage = data.damage;
@@ -115,8 +114,8 @@ namespace TCPServerExample.Game
     {
         public ArmorType ArmorType { get; private set; }
         public int Defence { get; private set; }
-        public Armor(int templateId)
-                    : base(ItemType.Armor)
+
+        public Armor(int templateId) : base(ItemType.Armor)
         {
             Init(templateId);
         }
@@ -130,7 +129,7 @@ namespace TCPServerExample.Game
 
             ArmorData data = (ArmorData)itemData;
             {
-                TemplateId = templateId;
+                TemplateId = data.id;
                 Count = 1;
                 ArmorType = data.armorType;
                 Defence = data.defence;
@@ -143,8 +142,8 @@ namespace TCPServerExample.Game
     {
         public ConsumableType ConsumableType { get; private set; }
         public int MaxCount { get; set; }
-        public Consumable(int templateId)
-                    : base(ItemType.Consumable)
+
+        public Consumable(int templateId) : base(ItemType.Consumable)
         {
             Init(templateId);
         }
@@ -158,11 +157,11 @@ namespace TCPServerExample.Game
 
             ConsumableData data = (ConsumableData)itemData;
             {
-                TemplateId = templateId;
+                TemplateId = data.id;
                 Count = 1;
                 MaxCount = data.maxCount;
                 ConsumableType = data.consumableType;
-                Stackable = data.maxCount > 1;
+                Stackable = (data.maxCount > 1);
             }
         }
     }

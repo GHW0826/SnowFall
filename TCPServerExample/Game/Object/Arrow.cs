@@ -1,12 +1,5 @@
 ﻿using Google.Protobuf.Protocol;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using TCPServerExample.Game.Object;
-using TCPServerExample.Game.Room;
 
 namespace TCPServerExample.Game
 {
@@ -23,15 +16,14 @@ namespace TCPServerExample.Game
             Room.PushAfter(tick, Update);
 
             Vector2Int destPos = GetFrontCellPos();
-            Console.WriteLine($"Arow pos: {destPos.x},{destPos.y}");
             if (Room.Map.CanGo(destPos))
             {
                 CellPos = destPos;
 
                 S_Move movePacket = new S_Move();
-                movePacket.ObjectId = id;
+                movePacket.ObjectId = Id;
                 movePacket.PosInfo = PosInfo;
-                Room.BroadCast(movePacket);
+                Room.Broadcast(movePacket);
 
                 Console.WriteLine("Move Arrow");
             }
@@ -44,9 +36,7 @@ namespace TCPServerExample.Game
                 }
 
                 // 소멸
-                GameRoom room = Room;
-                room.Push(room.LeaveGame, id);
-                Console.WriteLine($"destroy: {id}");
+                Room.Push(Room.LeaveGame, Id);
             }
         }
 

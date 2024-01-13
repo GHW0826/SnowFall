@@ -2,9 +2,6 @@
 using Google.Protobuf.Protocol;
 using System;
 using System.Collections.Generic;
-using TCPServerExample.Data;
-using TCPServerExample.Game.Object;
-using TCPServerExample.Game.Room;
 
 namespace TCPServerExample.Game
 {
@@ -12,45 +9,43 @@ namespace TCPServerExample.Game
     {
         public int RoomId { get; set; }
 
-        Dictionary<int, Player> _players = new ();
-        Dictionary<int, Monster> _monsters = new ();
-        Dictionary<int, Projectile> _projectile = new ();
+        Dictionary<int, Player> _players = new Dictionary<int, Player>();
+        Dictionary<int, Monster> _monsters = new Dictionary<int, Monster>();
+        Dictionary<int, Projectile> _projectiles = new Dictionary<int, Projectile>();
 
-        public Map Map { get; private set; } = new();
+        public Map Map { get; private set; } = new Map();
 
         public void Init(int mapId)
         {
-            Map.LoadMap(mapId, "../../../../Common/MapData/");
+            Map.LoadMap(mapId);
 
-            // temp
+            // TEMP
             Monster monster = ObjectManager.Instance.Add<Monster>();
-            monster.Init(monster.TemplateId);
+            monster.Init(1);
             monster.CellPos = new Vector2Int(5, 5);
             EnterGame(monster);
         }
 
-        // 누군가 주기적으로 호출해줘야 한다.
+        // 누군가 주기적으로 호출해줘야 한다
         public void Update()
         {
             foreach (Monster monster in _monsters.Values)
-            {
                 monster.Update();
-            }
 
             Flush();
         }
 
-        public void EnterGame(GameObject newObject)
+        public void EnterGame(GameObject gameObject)
         {
-            if (newObject == null)
+            if (gameObject == null)
                 return;
 
-            GameObjectType type = ObjectManager.GetObjectTypeById(newObject.id);
+            GameObjectType type = ObjectManager.GetObjectTypeById(gameObject.Id);
 
             if (type == GameObjectType.Player)
             {
-                Player player = newObject as Player;
-                _players.Add(newObject.id, player);
+                Player player = gameObject as Player;
+                _players.Add(gameObject.Id, player);
                 player.Room = this;
 
                 player.RefreshAdditionalStat();
@@ -59,19 +54,21 @@ namespace TCPServerExample.Game
 
                 // 본인한테 정보 전송
                 {
-                    S_EnterGame enterPacket = new();
+                    S_EnterGame enterPacket = new S_EnterGame();
                     enterPacket.Player = player.Info;
                     player.Session.Send(enterPacket);
 
-                    S_Spawn spawnPacket = new();
+                    S_Spawn spawnPacket = new S_Spawn();
                     foreach (Player p in _players.Values)
                     {
                         if (player != p)
                             spawnPacket.Objects.Add(p.Info);
                     }
+
                     foreach (Monster m in _monsters.Values)
                         spawnPacket.Objects.Add(m.Info);
-                    foreach (Projectile p in _projectile.Values)
+
+                    foreach (Projectile p in _projectiles.Values)
                         spawnPacket.Objects.Add(p.Info);
 
                     player.Session.Send(spawnPacket);
@@ -79,16 +76,16 @@ namespace TCPServerExample.Game
             }
             else if (type == GameObjectType.Monster)
             {
-                Monster monster = newObject as Monster;
-                _monsters.Add(newObject.id, monster);
+                Monster monster = gameObject as Monster;
+                _monsters.Add(gameObject.Id, monster);
                 monster.Room = this;
 
                 Map.ApplyMove(monster, new Vector2Int(monster.CellPos.x, monster.CellPos.y));
             }
             else if (type == GameObjectType.Projectile)
             {
-                Projectile projectile = newObject as Projectile;
-                _projectile.Add(newObject.id, projectile);
+                Projectile projectile = gameObject as Projectile;
+                _projectiles.Add(gameObject.Id, projectile);
                 projectile.Room = this;
 
                 projectile.Update();
@@ -96,11 +93,11 @@ namespace TCPServerExample.Game
 
             // 타인한테 정보 전송
             {
-                S_Spawn spawnPacket = new();
-                spawnPacket.Objects.Add(newObject.Info);
+                S_Spawn spawnPacket = new S_Spawn();
+                spawnPacket.Objects.Add(gameObject.Info);
                 foreach (Player p in _players.Values)
                 {
-                    if (newObject.id != p.id)
+                    if (p.Id != gameObject.Id)
                         p.Session.Send(spawnPacket);
                 }
             }
@@ -122,7 +119,7 @@ namespace TCPServerExample.Game
 
                 // 본인한테 정보 전송
                 {
-                    S_LeaveGame leavePacket = new();
+                    S_LeaveGame leavePacket = new S_LeaveGame();
                     player.Session.Send(leavePacket);
                 }
             }
@@ -138,41 +135,39 @@ namespace TCPServerExample.Game
             else if (type == GameObjectType.Projectile)
             {
                 Projectile projectile = null;
-                if (_projectile.Remove(objectId, out projectile) == false)
+                if (_projectiles.Remove(objectId, out projectile) == false)
                     return;
+
                 projectile.Room = null;
             }
 
             // 타인한테 정보 전송
             {
-                S_Despawn despawnPacket = new();
+                S_Despawn despawnPacket = new S_Despawn();
                 despawnPacket.ObjectIds.Add(objectId);
                 foreach (Player p in _players.Values)
                 {
-                    if (objectId != p.id)
+                    if (p.Id != objectId)
                         p.Session.Send(despawnPacket);
                 }
             }
         }
-        // TODO
-        public Player FindPlyer(Func<GameObject, bool> condition)
+
+        public Player FindPlayer(Func<GameObject, bool> condition)
         {
             foreach (Player player in _players.Values)
             {
                 if (condition.Invoke(player))
                     return player;
             }
+
             return null;
         }
 
-        public void BroadCast(IMessage packet)
+        public void Broadcast(IMessage packet)
         {
             foreach (Player p in _players.Values)
-            {
                 p.Session.Send(packet);
-            }
         }
-
-
     }
 }

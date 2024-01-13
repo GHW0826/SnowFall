@@ -1,11 +1,6 @@
 ﻿using Google.Protobuf.Protocol;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TCPServerExample.Game.Object
+namespace TCPServerExample.Game
 {
     public class Projectile : GameObject
     {
@@ -16,9 +11,8 @@ namespace TCPServerExample.Game.Object
             ObjectType = GameObjectType.Projectile;
         }
 
-        public virtual void Update()
+        public override void Update()
         {
-            // TODO
         }
     }
 }

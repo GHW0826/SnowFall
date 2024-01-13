@@ -2,10 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using TCPServerCore;
 
-namespace TCPServerExample.Game.Room
+namespace TCPServerExample.Game
+
 {
     public struct Pos
     {
@@ -27,7 +27,6 @@ namespace TCPServerExample.Game.Room
                 return 0;
             return F < other.F ? 1 : -1;
         }
-
     }
 
     public struct Vector2Int
@@ -35,11 +34,7 @@ namespace TCPServerExample.Game.Room
         public int x;
         public int y;
 
-        public Vector2Int(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
+        public Vector2Int(int x, int y) { this.x = x; this.y = y; }
 
         public static Vector2Int up { get { return new Vector2Int(0, 1); } }
         public static Vector2Int down { get { return new Vector2Int(0, -1); } }
@@ -50,13 +45,14 @@ namespace TCPServerExample.Game.Room
         {
             return new Vector2Int(a.x + b.x, a.y + b.y);
         }
+
         public static Vector2Int operator -(Vector2Int a, Vector2Int b)
         {
             return new Vector2Int(a.x - b.x, a.y - b.y);
         }
 
-        public float Magnitude  { get { return (float)Math.Sqrt(sqrMagnitude); } }
-        public int sqrMagnitude { get { return x * x + y * y; } }
+        public float magnitude { get { return (float)Math.Sqrt(sqrMagnitude); } }
+        public int sqrMagnitude { get { return (x * x + y * y); } }
         public int cellDistFromZero { get { return Math.Abs(x) + Math.Abs(y); } }
     }
 
@@ -85,17 +81,15 @@ namespace TCPServerExample.Game.Room
             return !_collision[y, x] && (!checkObjects || _objects[y, x] == null);
         }
 
-
-        public GameObject Find(Vector2Int skillPos)
+        public GameObject Find(Vector2Int cellPos)
         {
-            if (skillPos.x < MinX || skillPos.x > MaxX)
+            if (cellPos.x < MinX || cellPos.x > MaxX)
                 return null;
-            if (skillPos.y < MinY || skillPos.y > MaxY)
+            if (cellPos.y < MinY || cellPos.y > MaxY)
                 return null;
 
-
-            int x = skillPos.x - MinX;
-            int y = MaxY - skillPos.y;
+            int x = cellPos.x - MinX;
+            int y = MaxY - cellPos.y;
             return _objects[y, x];
         }
 
@@ -107,18 +101,18 @@ namespace TCPServerExample.Game.Room
                 return false;
 
             PositionInfo posInfo = gameObject.PosInfo;
-            if (posInfo.PoxX < MinX || posInfo.PoxX > MaxX)
+            if (posInfo.PosX < MinX || posInfo.PosX > MaxX)
                 return false;
-            if (posInfo.PoxY < MinY || posInfo.PoxY > MaxY)
+            if (posInfo.PosY < MinY || posInfo.PosY > MaxY)
                 return false;
 
             {
-
-                int x = posInfo.PoxX - MinX;
-                int y = MaxY - posInfo.PoxY;
+                int x = posInfo.PosX - MinX;
+                int y = MaxY - posInfo.PosY;
                 if (_objects[y, x] == gameObject)
                     _objects[y, x] = null;
             }
+
             return true;
         }
 
@@ -141,13 +135,13 @@ namespace TCPServerExample.Game.Room
                 _objects[y, x] = gameObject;
             }
 
-            // 실제 좌표 이용
-            posInfo.PoxX = dest.x;
-            posInfo.PoxY = dest.y;
+            // 실제 좌표 이동
+            posInfo.PosX = dest.x;
+            posInfo.PosY = dest.y;
             return true;
         }
 
-        public void LoadMap(int mapId, string pathPrefix = "../../../../Common/MapData/")
+        public void LoadMap(int mapId, string pathPrefix = "../../../../../Common/MapData")
         {
             string mapName = "Map_" + mapId.ToString("000");
 
@@ -170,12 +164,10 @@ namespace TCPServerExample.Game.Room
                 string line = reader.ReadLine();
                 for (int x = 0; x < xCount; x++)
                 {
-                    _collision[y, x] = line[x] == '1' ? true : false;
+                    _collision[y, x] = (line[x] == '1' ? true : false);
                 }
             }
         }
-
-
 
         #region A* PathFinding
 
@@ -184,7 +176,7 @@ namespace TCPServerExample.Game.Room
         int[] _deltaX = new int[] { 0, 0, -1, 1 };
         int[] _cost = new int[] { 10, 10, 10, 10 };
 
-        public List<Vector2Int> FindPath(Vector2Int startCellPos, Vector2Int destCellPos, bool checkObjects = false)
+        public List<Vector2Int> FindPath(Vector2Int startCellPos, Vector2Int destCellPos, bool checkObjects = true)
         {
             List<Pos> path = new List<Pos>();
 
@@ -203,7 +195,7 @@ namespace TCPServerExample.Game.Room
             int[,] open = new int[SizeY, SizeX]; // OpenList
             for (int y = 0; y < SizeY; y++)
                 for (int x = 0; x < SizeX; x++)
-                    open[y, x] = int.MaxValue;
+                    open[y, x] = Int32.MaxValue;
 
             Pos[,] parent = new Pos[SizeY, SizeX];
 
@@ -240,9 +232,9 @@ namespace TCPServerExample.Game.Room
 
                     // 유효 범위를 벗어났으면 스킵
                     // 벽으로 막혀서 갈 수 없으면 스킵
-                    if (!checkObjects || next.Y != dest.Y || next.X != dest.X)
+                    if (next.Y != dest.Y || next.X != dest.X)
                     {
-                        if (CanGo(Pos2Cell(next)) == false) // CellPos
+                        if (CanGo(Pos2Cell(next), checkObjects) == false) // CellPos
                             continue;
                     }
 

@@ -1,12 +1,12 @@
-﻿using Google.Protobuf;
-using Google.Protobuf.Protocol;
-using System;
+﻿using System;
 using System.Net;
+using Google.Protobuf.Protocol;
+using Google.Protobuf;
 using TCPServerCore;
-using TCPServerExample.Data;
 using TCPServerExample.Game;
 
-namespace TCPServerExample.Session
+namespace TCPServerExample
+
 {
     public partial class ClientSession : PacketSession
     {
@@ -18,9 +18,7 @@ namespace TCPServerExample.Session
         #region Network
         public void Send(IMessage packet)
         {
-
             string msgName = packet.Descriptor.Name.Replace("_", string.Empty);
-
             MsgId msgId = (MsgId)Enum.Parse(typeof(MsgId), msgName);
             ushort size = (ushort)packet.CalculateSize();
             byte[] sendBuffer = new byte[size + 4];
@@ -32,7 +30,7 @@ namespace TCPServerExample.Session
 
         public override void OnConnected(EndPoint endPoint)
         {
-            Console.WriteLine($"OnConnected: {endPoint}");
+            Console.WriteLine($"OnConnected : {endPoint}");
 
             {
                 S_Connected connectedPacket = new S_Connected();
@@ -42,7 +40,7 @@ namespace TCPServerExample.Session
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)
         {
-           PacketManager.Instance.OnRecvPacket(this, buffer);
+            PacketManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
@@ -51,17 +49,14 @@ namespace TCPServerExample.Session
             room.Push(room.LeaveGame, MyPlayer.Info.ObjectId);
 
             SessionManager.Instance.Remove(this);
-         
-            Console.WriteLine($"OnDisconnected: {endPoint}");
+
+            Console.WriteLine($"OnDisconnected : {endPoint}");
         }
 
         public override void OnSend(int numOfBytes)
         {
-           // Console.WriteLine($"BytesTransferred: {numOfBytes}");
+            //Console.WriteLine($"Transferred bytes: {numOfBytes}");
         }
-
         #endregion
     }
-
 }
-

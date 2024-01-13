@@ -1,11 +1,4 @@
-﻿using Google.Protobuf;
-using Google.Protobuf.Protocol;
-using System;
-using System.Collections.Generic;
-using TCPServerExample.Data;
-using TCPServerExample.DB;
-using TCPServerExample.Game.Object;
-using TCPServerExample.Game.Room;
+﻿using Google.Protobuf.Protocol;
 
 namespace TCPServerExample.Game
 {
@@ -15,7 +8,7 @@ namespace TCPServerExample.Game
         {
             if (player == null)
                 return;
-            
+
             player.HandleEquipItem(equipPacket);
         }
     }

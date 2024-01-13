@@ -30,8 +30,6 @@ namespace TCPServerExample.DB
             builder.Entity<PlayerDb>()
                 .HasIndex(p => p.PlayerName)
                 .IsUnique();
-
-            builder.Entity<ItemDb>();
         }
     }
 }
