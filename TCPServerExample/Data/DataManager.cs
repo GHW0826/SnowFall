@@ -31,7 +31,8 @@ namespace TCPServerExample.Data
         static Loader LoadJson<Loader, Key, Value>(string path) where Loader : ILoader<Key, Value>
         {
             string text= File.ReadAllText($"{ConfigManager.Config.dataPath}/{path}.json");
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<Loader>(text);
+            var loader = Newtonsoft.Json.JsonConvert.DeserializeObject<Loader>(text);
+            return loader;
         }
     }
 }

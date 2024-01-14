@@ -146,14 +146,14 @@ namespace TCPServerExample.Data
     [Serializable]
     public class MonsterLoader : ILoader<int, MonsterData>
     {
-        public List<MonsterData> stats = new List<MonsterData>();
+        public List<MonsterData> monsters = new List<MonsterData>();
 
         public Dictionary<int, MonsterData> MakeDict()
         {
             Dictionary<int, MonsterData> dict = new Dictionary<int, MonsterData>();
-            foreach (MonsterData stat in stats)
+            foreach (MonsterData monster in monsters)
             {
-                dict.Add(stat.id, stat);
+                dict.Add(monster.id, monster);
             }
             return dict;
         }

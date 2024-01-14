@@ -5,7 +5,7 @@
 namespace TCPServerExample.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class inventory : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,13 @@ namespace TCPServerExample.Migrations
                     PlayerDbId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PlayerName = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AccountDbId = table.Column<int>(type: "int", nullable: false)
+                    AccountDbId = table.Column<int>(type: "int", nullable: false),
+                    Level = table.Column<int>(type: "int", nullable: false),
+                    Hp = table.Column<int>(type: "int", nullable: false),
+                    MaxHp = table.Column<int>(type: "int", nullable: false),
+                    Attack = table.Column<int>(type: "int", nullable: false),
+                    Speed = table.Column<float>(type: "real", nullable: false),
+                    TotalExp = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -43,11 +49,38 @@ namespace TCPServerExample.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Item",
+                columns: table => new
+                {
+                    ItemDbId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TemplateId = table.Column<int>(type: "int", nullable: false),
+                    Count = table.Column<int>(type: "int", nullable: false),
+                    Slot = table.Column<int>(type: "int", nullable: false),
+                    Equipped = table.Column<bool>(type: "bit", nullable: false),
+                    OwnerDbId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Item", x => x.ItemDbId);
+                    table.ForeignKey(
+                        name: "FK_Item_Player_OwnerDbId",
+                        column: x => x.OwnerDbId,
+                        principalTable: "Player",
+                        principalColumn: "PlayerDbId");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Account_AccountName",
                 table: "Account",
                 column: "AccountName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Item_OwnerDbId",
+                table: "Item",
+                column: "OwnerDbId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Player_AccountDbId",
@@ -64,6 +97,9 @@ namespace TCPServerExample.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Item");
+
             migrationBuilder.DropTable(
                 name: "Player");
 

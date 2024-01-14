@@ -5,7 +5,6 @@ using System.IO;
 using TCPServerCore;
 
 namespace TCPServerExample.Game
-
 {
     public struct Pos
     {
@@ -141,7 +140,7 @@ namespace TCPServerExample.Game
             return true;
         }
 
-        public void LoadMap(int mapId, string pathPrefix = "../../../../../Common/MapData")
+        public void LoadMap(int mapId, string pathPrefix = "../../../../Common/MapData/")
         {
             string mapName = "Map_" + mapId.ToString("000");
 
