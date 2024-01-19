@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace TCPServerExample
+namespace TCPServerExampleZone
 {
     class SessionManager
     {
@@ -13,6 +14,17 @@ namespace TCPServerExample
         Dictionary<int, ClientSession> _sessions = new Dictionary<int, ClientSession>();
         object _lock = new object();
         int _dummyId = 1;
+
+        public List<ClientSession> GetSessions()
+        {
+            List<ClientSession> sessions = new();
+            lock (_lock)
+            {
+                sessions = _sessions.Values.ToList();
+            }
+
+            return sessions;
+        }
 
         public int GetBusyScore()
         {

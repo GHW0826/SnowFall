@@ -4,27 +4,61 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using TCPServerCore;
-using TCPServerExample.Data;
-using TCPServerExample.DB;
-using TCPServerExample.Game;
+using TCPServerExampleZone.Data;
+using TCPServerExampleZone.DB;
+using TCPServerExampleZone.Game;
 
-namespace TCPServerExample
+namespace TCPServerExampleZone
 {
+    // 1. GameRoom 방식 간단한 동기화
+    // 2. 넓은 영역 관리
+    // 3. 심리스 MO
+
+    // (thread 개수)
+    // 1. Recv (N개)
+    // 2. GameRoomMamger (1) -> GameLogic으로 수정(일단 단일 스레드로 수정)
+    //      - 몬스터 도 따로 파도됨.
+    //      - 데미지 피격 판정등 간단한것만 하면 좋다.
+    //      -> 방이 많아지면 어떻게 처리할까 (고민)
+    // 3. Send 담당 Task 추가 (1) (Network Task)
+    // 4. DB (1)
+
     class Program
     {
         static Listener listener = new ();
-        static List<System.Timers.Timer> _timers = new();
 
-        static void TickRoom(GameRoom room, int tick = 100)
+        static void GameLogicTask()
         {
-            var timer = new System.Timers.Timer();
-            timer.Interval = tick;
-            timer.Elapsed += ((s, e) => { room.Update(); });
-            timer.AutoReset = true;
-            timer.Enabled = true;
+            while (true)
+            {
+                GameLogic.Instance.Update();
+                Thread.Sleep(0);
+            }
+        }
 
-            _timers.Add(timer);
+        static void DbTask()
+        {
+            while (true)
+            {
+                DbTransaction.Instance.Flush();
+                Thread.Sleep(0);
+            }
+        }
+        
+        static void NetworkTask()
+        {
+            while (true)
+            {
+                List<ClientSession> sessions = SessionManager.Instance.GetSessions();
+                foreach (ClientSession session in sessions)
+                {
+                    session.FlushSend();
+                }
+                Thread.Sleep(0);
+            }
         }
 
         static void StattServerInfoTask()
@@ -71,8 +105,10 @@ namespace TCPServerExample
             ConfigManager.LoadConfig();
             DataManager.LoadData();
 
-            GameRoom room = RoomManager.Instance.Add(1);
-            TickRoom(room, 50);
+            GameLogic.Instance.Push(() =>
+            {
+                GameRoom room = GameLogic.Instance.Add(1);
+            });
 
             // DNS
             string host = Dns.GetHostName();
@@ -80,6 +116,8 @@ namespace TCPServerExample
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
             IpAddress = ipAddr.ToString();
+
+
             try
             {
                 Listener listener = new();
@@ -89,11 +127,30 @@ namespace TCPServerExample
 
                 listener.Init(endPoint, () => { return SessionManager.Instance.Generate(); }, 1);
 
-                while (true)
+
+                // DbTask();
+                // DbTask
                 {
-                    DbTransaction.Instance.Flush();
-                    // Thread.Sleep(100);
+                    Thread t = new Thread(DbTask);
+                    t.Name = "DB";
+                    t.Start();
                 }
+
+                /*
+                    Task networkTask = new Task(NetworkTask, TaskCreationOptions.LongRunning);
+                    networkTask.Start();
+                */
+                // NetworkTask
+                {
+                    Thread t = new Thread(NetworkTask);
+                    t.Name = "Network Send";
+                    t.Start();
+                }
+
+                // GameLogic
+                Thread.CurrentThread.Name = "GameLogic";
+                GameLogicTask();
+
             }
             catch (Exception ex)
             {
