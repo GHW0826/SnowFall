@@ -132,6 +132,10 @@ namespace TCPServerExampleZone.Game
             if (posInfo.PosY < MinY || posInfo.PosY > MaxY)
                 return false;
 
+            // Zone
+            Zone zone = gameObject.Room.GetZone(gameObject.CellPos);
+            zone.Remove(gameObject);
+
             {
                 int x = posInfo.PosX - MinX;
                 int y = MaxY - posInfo.PosY;
@@ -142,7 +146,12 @@ namespace TCPServerExampleZone.Game
             return true;
         }
 
-        public bool ApplyMove(GameObject gameObject, Vector2Int dest)
+        public bool ApplyMove(
+            GameObject gameObject,
+            Vector2Int dest,
+            bool checkObjects = true,
+            bool collision = true
+            )
         {
             ApplyLeave(gameObject);
 
@@ -155,25 +164,58 @@ namespace TCPServerExampleZone.Game
             if (CanGo(dest, true) == false)
                 return false;
 
+            if (collision)
             {
-                int x = dest.x - MinX;
-                int y = MaxY - dest.y;
-                _objects[y, x] = gameObject;
+                {
+                    int x = posInfo.PosX - MinX;
+                    int y = MaxY - posInfo.PosY;
+                    if (_objects[y, x] == gameObject)
+                        _objects[y, x] = null;
+                }
+                {
+                    int x = dest.x - MinX;
+                    int y = MaxY - dest.y;
+                    _objects[y, x] = gameObject;
+                }
             }
 
-            Player p = gameObject as Player;
-            if (p != null)
+            // zone
+            GameObjectType type = ObjectManager.GetObjectTypeById(gameObject.Id);
+            if (type == GameObjectType.Player)
             {
+
+                Player player = (Player)gameObject;
                 Zone now = gameObject.Room.GetZone(gameObject.CellPos);
                 Zone after = gameObject.Room.GetZone(dest);
                 if (now != after)
                 {
-                    if (now != null)
-                        now.Players.Remove(p);
-                    if (after != null)
-                        after.Players.Add(p);
+                    now.Players.Remove(player);
+                    after.Players.Add(player);
                 }
             }
+            else if (type == GameObjectType.Monster)
+            {
+                Monster monster = (Monster)gameObject;
+                Zone now = gameObject.Room.GetZone(gameObject.CellPos);
+                Zone after = gameObject.Room.GetZone(dest);
+                if (now != after)
+                {
+                    now.Monsters.Remove(monster);
+                    after.Monsters.Add(monster);
+                }
+            }
+            else if (type == GameObjectType.Projectile)
+            {
+                Projectile projectile = (Projectile)gameObject;
+                Zone now = gameObject.Room.GetZone(gameObject.CellPos);
+                Zone after = gameObject.Room.GetZone(dest);
+                if (now != after)
+                {
+                    now.Projectiles.Remove(projectile);
+                    after.Projectiles.Add(projectile);
+                }
+            }
+
 
             // 실제 좌표 이동
             posInfo.PosX = dest.x;
@@ -216,7 +258,12 @@ namespace TCPServerExampleZone.Game
         int[] _deltaX = new int[] { 0, 0, -1, 1 };
         int[] _cost = new int[] { 10, 10, 10, 10 };
 
-        public List<Vector2Int> FindPath(Vector2Int startCellPos, Vector2Int destCellPos, bool checkObjects = true)
+        public List<Vector2Int> FindPath(
+            Vector2Int startCellPos,
+            Vector2Int destCellPos,
+            bool checkObjects = true,
+            int maxDist = 10
+            )
         {
             List<Pos> path = new List<Pos>();
 
@@ -277,6 +324,10 @@ namespace TCPServerExampleZone.Game
                 {
                     Pos next = new Pos(node.Y + _deltaY[i], node.X + _deltaX[i]);
 
+                    // 너무 멀면 스킵
+                    if (Math.Abs(pos.Y - next.Y) + Math.Abs(pos.X - next.X) >= maxDist)
+                        continue;
+
                     // 유효 범위를 벗어났으면 스킵
                     // 벽으로 막혀서 갈 수 없으면 스킵
                     if (next.Y != dest.Y || next.X != dest.X)
@@ -316,14 +367,34 @@ namespace TCPServerExampleZone.Game
         {
             List<Vector2Int> cells = new List<Vector2Int>();
 
-            Pos pos = dest;
-            while (parent[pos] != pos)
+            if (parent.ContainsKey(dest) == false)
             {
-                cells.Add(Pos2Cell(pos));
-                pos = parent[pos];
+                Pos best = new();
+                int bestDist = Int32.MaxValue;
+
+                foreach (Pos pos in parent.Keys)
+                {
+                    int dist = Math.Abs(dest.X - pos.X) + Math.Abs(dest.Y - pos.Y);
+                    // 제일 우수한 후보를 뽑는다.
+                    if (dist < bestDist)
+                    {
+                        best = pos;
+                        bestDist = dist;
+                    }
+                }
+                dest = best;
             }
-            cells.Add(Pos2Cell(pos));
-            cells.Reverse();
+
+            {
+                Pos pos = dest;
+                while (parent[pos] != pos)
+                {
+                    cells.Add(Pos2Cell(pos));
+                    pos = parent[pos];
+                }
+                cells.Add(Pos2Cell(pos));
+                cells.Reverse();
+            }
 
             return cells;
         }

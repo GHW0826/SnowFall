@@ -19,6 +19,31 @@ namespace TCPServerExampleZone
         object _lock = new();
         List<ArraySegment<byte>> _reserveQueue = new();
 
+        long _pingpongTick = 0;
+        public void Ping()
+        {
+            if (_pingpongTick > 0)
+            {
+                long delta = (System.Environment.TickCount64 - _pingpongTick);
+                if (delta > 30 * 1000)
+                {
+                    Console.WriteLine("Disconnected by PingCheck");
+                    Disconnect();
+                    return;
+                }
+            }
+
+            S_Ping pingPacket = new();
+            Send(pingPacket);
+
+            GameLogic.Instance.PushAfter(5000, Ping);
+        }
+
+        public void HandlerPong()
+        {
+            _pingpongTick = System.Environment.TickCount64;
+        }
+
         #region Network
 
         // 예약만 하고 보내지는 않음
@@ -63,6 +88,8 @@ namespace TCPServerExampleZone
                 S_Connected connectedPacket = new S_Connected();
                 Send(connectedPacket);
             }
+
+            GameLogic.Instance.PushAfter(5000, Ping);
         }
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)
@@ -74,6 +101,8 @@ namespace TCPServerExampleZone
         {
             GameLogic.Instance.Push(() =>
             {
+                if (MyPlayer == null)
+                    return;
                 GameRoom room = GameLogic.Instance.Find(1);
                 room.Push(room.LeaveGame, MyPlayer.Info.ObjectId);
             });

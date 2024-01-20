@@ -26,6 +26,8 @@ enum MsgId {
   C_EQUIP_ITEM = 18;
   S_EQUIP_ITEM = 19;
   S_CHANGE_STAT = 20;
+  S_PING = 21;
+  C_PONG = 22;
 }
 
 enum CreatureState {
@@ -175,6 +177,25 @@ message S_ChangeStat {
 	StatInfo statInfo = 1;
 }
 
+
+message S_Ping {
+
+}
+
+message C_Pong {
+
+}
+
+///////////////////////////////////////
+
+
+
+
+
+
+
+
+
 message LobbyPlayerInfo {
 	int32 playerDbId = 1;
 	string name = 2;
@@ -196,8 +217,8 @@ message ObjectInfo {
 message PositionInfo {
 	CreatureState state = 1;
 	MoveDir moveDir = 2;
-	int32 poxX = 3;
-	int32 poxY = 4;
+	int32 posX = 3;
+	int32 posY = 4;
 }
 
 message StatInfo {

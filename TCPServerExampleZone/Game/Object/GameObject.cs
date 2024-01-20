@@ -135,7 +135,7 @@ namespace TCPServerExampleZone.Game
             PosInfo.PosX = 0;
             PosInfo.PosY = 0;
 
-            room.EnterGame(this);
+            room.EnterGame(this, randomPos: true);
         }
 
         public virtual GameObject GetOwner()
