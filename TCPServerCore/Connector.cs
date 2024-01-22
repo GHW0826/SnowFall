@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TCPServerCore
@@ -25,6 +26,8 @@ namespace TCPServerCore
                 args.UserToken = socket;
 
                 RegisterConnect(args);
+
+                Thread.Sleep(30);
             }
         }
 
@@ -34,22 +37,36 @@ namespace TCPServerCore
             if (socket == null)
                 return;
 
-            bool pending = socket.ConnectAsync(args);
-            if (pending == false)
-                OnConnectComplete(null, args);
+            try
+            {
+                bool pending = socket.ConnectAsync(args);
+                if (pending == false)
+                    OnConnectComplete(null, args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         void OnConnectComplete(object? sender, SocketAsyncEventArgs args)
         {
-            if (args.SocketError == SocketError.Success)
+            try
             {
-                Session session = _sessionFactory.Invoke();
-                session.Start(args.ConnectSocket);
-                session.OnConnected(args.RemoteEndPoint);
+                if (args.SocketError == SocketError.Success)
+                {
+                    Session session = _sessionFactory.Invoke();
+                    session.Start(args.ConnectSocket);
+                    session.OnConnected(args.RemoteEndPoint);
+                }
+                else
+                {
+                    Console.WriteLine($"OnConnectComplete socket error: {args.SocketError}");
+                }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine($"OnConnectComplete socket error: {args.SocketError}");
+                Console.WriteLine(e);
             }
         }
     }
