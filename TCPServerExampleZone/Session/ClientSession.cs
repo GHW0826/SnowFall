@@ -7,7 +7,6 @@ using TCPServerExampleZone.Game;
 using System.Collections.Generic;
 
 namespace TCPServerExampleZone
-
 {
     public partial class ClientSession : PacketSession
     {
